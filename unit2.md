@@ -1,8 +1,27 @@
 An h1 header
 ============
 
-Paragraphs are separated by a blank line.
 
+
+### Timing and delays
+    
+Функції `millis()` і `micros()` повертають кількість мілісекунд і мікросекунд відповідно, що минули після скидання.
+    
+Функція delay(ms) призупиняє роботу основної програми на заданий час в мілісекундах і резервує цей час для обробки завдань `WiFi` та `TCP/IP`. 
+
+Функція – `delayMicroseconds(us)` призначена для паузи на задане число мікросекунд.
+    
+Пам'ятайте, що є багато задач, що повинні забезпечувати стабільну роботу `Wi-Fi`, і для них потрібно періодично виділяти час роботи. `Wi-Fi` і `TCP/IP` бібліотека отримують можливість обробляти будь-які очікувані події кожен раз , коли функція `loop()` завершується, або коли викликається функція `delay`. 
+    
+Якщо у вас в програмі є будь яке оброблення, що займає багато часу (> 50 мс) без виклику `delay`, ви можете розглянути варіант спеціально додати виклик функції `delay`  для підтримки нормального виконання стеку `Wi-Fi`.
+    
+Існує також функція `yield()`, яка еквівалентна `delay(0)`. Функція  `delayMicroseconds` не поступається часом виконання іншим завданням, тому використання її для затримки більш ніж на 20 мілісекунд не рекомендується.
+
+**********
+
+
+Paragraphs are separated by a blank line.
+---
 2nd paragraph. *Italic*, **bold**, and `monospace`. Itemized lists
 look like:
 
@@ -155,3 +174,33 @@ $$I = \int \rho R^{2} dV$$
 
 And note that you can backslash-escape any punctuation characters
 which you wish to be displayed literally, ex.: \`foo\`, \*bar\*, etc.
+
+
+Приклади оформлення:
+---
+Colons can be used to align columns.
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+There must be at least 3 dashes separating each header cell.
+The outer pipes (|) are optional, and you don't need to make the 
+raw Markdown line up prettily. You can also use inline Markdown.
+
+
+
+Three or more...
+
+---
+
+Hyphens
+***
+
+Asterisks
+
+___
+
+Underscores
