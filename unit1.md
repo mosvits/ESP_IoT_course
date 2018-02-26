@@ -300,10 +300,9 @@ void loop() {
 
 `Serial` та `Serial1` підтримують 5, 6, 7, 8 біт даних, odd(O), even(E), no (N) режими парності, 1 або 2 стоп біта. Для вибору потрібного режиму викличте – `Serial.begin(baudrate, SERIAL_8N1)`; або `Serial.begin(baudrate, SERIAL_6E2)`; і т.д.
 
-Новий метод був реалізований як для `Serial`, так і для `Serial1`, щоб отримати поточну настройку швидкості передачі. Щоб отримати поточну швидкість передачі, викличте – `Serial.baudRate()`, `Serial1.baudRate()`, які повернуть значення типу int з поточною швидкістю. Наприклад:
-
-
-Приклад керування світлодіодами з терміналу комп'ютера через послідовний порт.
+Нижче приведено приклад програми перевірки послідовного порта, яка виконує функцію ехо, тобто повернення у термінал даних. що були відправлені на мікроконтролер. 
+  
+Функції `Serial.baudRate()`, `Serial1.baudRate()` використовуються для перевірки поточної швидкості передачі даних.
 
 ```c
 void setup() {
@@ -319,7 +318,7 @@ void setup() {
  
 void loop() {
   while(Serial.available() > 0) {
-    Serial.write(Serial.read()); // Ехо - те що буде відіслано те і повернеться
+    Serial.write(Serial.read()); // Еchо - те що буде відіслано те і повернеться
     if(Serial.available() == 0)
       Serial.println();
   }
@@ -328,13 +327,60 @@ void loop() {
 
 Описаний вище метод, також підтримується офіційною `ESP8266 Software Serial` бібліотекою.
 
-Зверніть увагу , що ця реалізація дійсна тільки для плат на базі `ESP8266` , і не буде працювати з іншими платами `Arduino`.
+Зверніть увагу , що ця реалізація дійсна тільки для плат на базі `ESP8266`, і не буде працювати з іншими платами `Arduino`.
 
 Існують багато різноманітних функцій для роботи з типом `String`, і об’єкт – `Serial` співпрацює з ними, тому їх застосування буде доречним, а сам `Serial` є типом `Stream`.
 
+Далі наведено приклад реалізації керування світлодіодами з терміналу комп'ютера через послідовний порт.
+
+```c
+// pins for the LEDs:
+const int redPin = D1;
+const int greenPin = D2;
+const int bluePin = D4;
+ 
+void setup() {
+  // initialize serial:
+  Serial.begin(9600);
+  // make the pins outputs:
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+}
+ 
+void loop() {
+  // if there's any serial available, read it:
+  while (Serial.available() > 0) {
+
+    // look for the next valid integer in the incoming serial stream:
+    int red = Serial.parseInt();
+    Serial.print(red, DEC);
+    Serial.print(" ");
+    // do it again:
+    int green = Serial.parseInt();
+    Serial.print(green, HEX);
+    Serial.print(" ");
+    // do it again:
+    int blue = Serial.parseInt();
+    Serial.print(blue, BIN);
+    Serial.print(" ");
+ 
+    // fade the red, green, and blue legs of the LED:
+    analogWrite(redPin, red);
+    analogWrite(greenPin, green);
+    analogWrite(bluePin, blue);
+ 
+    // print the three numbers in one string as hexadecimal:
+    Serial.print(red, HEX);
+    Serial.print(green, HEX);
+    Serial.println(blue, HEX);
+  }
+}
+```
+
+[//]: ## "Завдання" 
 
 
-## Завдання
 
 Перелік посилань:	
 ---
