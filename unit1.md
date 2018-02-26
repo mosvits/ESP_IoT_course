@@ -197,6 +197,33 @@ void loop() {
 
 Переривання контактів задається за допомогою функції – `attachInterrupt` , а відключається за допомогою – `detachInterrupt` і можуть бути налаштовані на всіх `GPIO` окрім `GPIO16`. Підтримуються такі типи переривання: `CHANGE`,  `RISING`,  `FALLING`, так щоб налаштувати переривання по зміні рівня з 1 в 0 для GPIO2 треба викликати функцію – `attachInterrupt(GPIO2,callback, FALLING);` , де `callback` – це функція що буде викликана в результаті переривання.
 
+Приклад налаштування переривань `GPIO` для схеми з конопкою.
+
+```c
+const int interruptPin = 0; //GPIO 0 (Flash Button) 
+const int LED = 2; // On board blue LED 
+ 
+void setup() { 
+  Serial.begin(115200); 
+  pinMode(LED, OUTPUT); 
+  pinMode(interruptPin, INPUT_PULLUP); 
+  attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE); 
+  // CHANGE, RISING, FALLING
+} 
+ 
+void loop() 
+{ 
+    digitalWrite(LED,HIGH); // LED off 
+    delay(1000); 
+    digitalWrite(LED,LOW); // LED on 
+    delay(1000); 
+} 
+ 
+//This program get executed when interrupt is occures i.e.change of input state
+void handleInterrupt() { 
+    Serial.println("Interrupt Detected"); 
+}
+```
 
 ### Налаштування та використання ШІМ (PWM)
 
