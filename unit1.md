@@ -118,42 +118,44 @@ void setup() {
 
 void loop() {
      // функція для виконання основного алгоритму 
-     // виконується періодично через кожну 1 мс
+     // виконується циклічно безкінечно разів
 }
 ```
 
 ### Перший скетч "Blink"
    
-   
-Blink the blue LED on the ESP-01 module
-This example code is in the public domain
+Зазвичай уроки програмування розпочинають з прикладу "Hello World!", але в сфері мікроконтролерів існує власний аналог "Blink" який моргає світлодідом.   
     
-The blue LED on the ESP-01 module is connected to `GPIO1` 
-    (which is also the TXD pin; so we cannot use Serial.print() at the same time)
-    
-> Note that this sketch uses LED_BUILTIN to find the pin with the internal LED
+> Зверніть увагу, що даний приклад перевизначає константу `LED_BUILTIN`, адже наша плата містить лише один вбудований світлодіод на `GPIO 2`
    
    
    
    ``` c
-   #define LED_BUILTIN D4
+   #define LED_BUILTIN 2               // Переприсвоєння константи LED_BUILTIN значення ніжки GPIO 2
     
    void setup() {
-     pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+     pinMode(LED_BUILTIN, OUTPUT);     // Ініціалізація ніжки - LED_BUILTIN в режим виходу
+                                       
    }
       
-   // the loop function runs over and over again forever
+   // Функція "loop" запускатиместься знову і знову нескінченно
    void loop() {
-     digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
-                                       // but actually the LED is on; this is because 
-                                       // it is active low on the ESP-01)
-     delay(1000);                      // Wait for a second
-     digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-     delay(2000);                      // Wait for two seconds (to demonstrate the active low LED)
+     digitalWrite(LED_BUILTIN, LOW);   // Ввімкнення світлодіода (Зверніть увагу що LOW означає низький рівень напруги
+                                       // але діод світиться, це через те що він увімкнений інверсно
+     delay(1000);                      // Очікування протягом секунди
+     digitalWrite(LED_BUILTIN, HIGH);  // Вимкнення світлодіода високим рівнем напруги - HIGH
+     delay(2000);                      // Очікування протягом двох секунд (для демонстрації активності діода)
    }
    ```
    
-   
+   Щоб завантажити даний скетч оберіть в меню _Інструменти_ :
+   * Плату -  `NodeMCU 1.0 (ESP-12E Module)`
+   * Порт - до якого підєднаний модуль
+   * Upload Speed - 115200 для стабільної прошивки або вище для швидкої
+   * Все інше залиште по замовчуванням
+   Та прошийте мікроконтролер за допомогою кнопки "Вивантажити" на панелі інструментів або комбінації клавіш `Ctrl+U`.
+
+   ![Налаштування](ESP8266/Instruments.png)
    
 ## Навчальні приклади для програмування `ESP8266`
 
@@ -177,28 +179,28 @@ The blue LED on the ESP-01 module is connected to `GPIO1`
 Приклад роботи з `GPIO` для схеми з світлодіодами.
 
 ```c
-// pins for the LEDs:
-const int redPin   = D6;
+// Контакти для діодів:
+const int redPin   = D6;      // Створення константи "redPin" що буде рівнятися номеру ніжки
+                              // мікроконтролера з ім'ям "D6" (Насправді D6 = 12, див. рисунки)
 const int greenPin = D5;
 const int bluePin  = D4;
  
 void setup() {
-  // make the pins outputs:
-  pinMode(redPin, OUTPUT);
+  pinMode(redPin, OUTPUT);    // Налаштування ніжки redPin в режим виходу
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 }
  
 void loop() {
-  digitalWrite(redPin, LOW);
+  digitalWrite(redPin, LOW);  // Встановлення сигналу низької напруги, на ніжчі redPin 
   digitalWrite(greenPin, HIGH);
   digitalWrite(bluePin, LOW);
-  delay(500);
+  delay(500);                 // Затримка на 500 мілісекенд
   
-  digitalWrite(redPin, HIGH);
+  digitalWrite(redPin, HIGH); // Встановлення сигналу високої напруги, на ніжчі redPin 
   digitalWrite(greenPin, LOW);
   digitalWrite(bluePin, HIGH);
-  delay(500);
+  delay(1000);                // Затримка на 1000 мілісекенд
 }
 ```
 ### Переривання на портах вводу-виводу
@@ -208,28 +210,32 @@ void loop() {
 Приклад налаштування переривань `GPIO` для схеми з конопкою.
 
 ```c
-const int interruptPin = 0; //GPIO 0 (Flash Button) 
-const int LED = 2; // On board blue LED 
+const int interruptPin = 0; // GPIO 0 або D3 (для ключа - кнопки) 
+const int LED = 2; // GPIO 2 або D4 (вбудований світлодіод на платі) 
  
 void setup() { 
-  Serial.begin(115200); 
-  pinMode(LED, OUTPUT); 
-  pinMode(interruptPin, INPUT_PULLUP); 
-  attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE); 
-  // CHANGE, RISING, FALLING
+  Serial.begin(115200); // Налаштування послідовного порту зв'язку з комп'ютером (детальніше далі в уроці)
+  pinMode(LED, OUTPUT); // Налаштування ніжки LED в режим виходу
+  pinMode(interruptPin, INPUT_PULLUP); // Налаштування ніжки LED 
+  // в режим входу з підтяжкою до напруги живлення, що забезпечить 
+  // високу напиругу на ніжці, якщо вона нікуди не приєднана (як часто буває при підключені ключа)
+  attachInterrupt(interruptPin, handleInterrupt, CHANGE); // Налаштування переривання 
+  // на функцію "handleInterrupt", яка описана нижче в програмі
 } 
  
 void loop() 
 { 
     digitalWrite(LED,HIGH); // LED off 
     delay(1000); 
-    digitalWrite(LED,LOW); // LED on 
+    digitalWrite(LED,LOW);  // LED on 
     delay(1000); 
 } 
  
-//This program get executed when interrupt is occures i.e.change of input state
+// Ця фунекція виконується, коли відбувається переривання, 
+// тобто змінився логічний рівень напруги вхідного сигналу на ніжці "interruptPin"
 void handleInterrupt() { 
-    Serial.println("Interrupt Detected"); 
+    Serial.println("Interrupt Detected");  // Друкує повідомлення "Interrupt Detected" 
+    // з переходои на новий рядок у послідовний порт, який можна переглянути на комп'ютері
 }
 ```
 
@@ -246,15 +252,14 @@ void handleInterrupt() {
 
   
 ```c
-// pins for the LEDs:
+// Контакти для діодів:
 const int redPin = D5;  // Створення константи "redPin" що буде рівнятися номеру ніжки
                         // мікроконтролера з ім'ям "D5" (Насправді D5 = 14, див. рисунки)
 const int greenPin = D6;
 const int bluePin = D4;
  
 void setup() {
-  // make the pins outputs:
-  pinMode(redPin, OUTPUT);    // налагтування ніжки redPin в режим виходу
+  pinMode(redPin, OUTPUT);    // Налаштування ніжки redPin в режим виходу
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 }
@@ -278,15 +283,14 @@ void loop() {
 Для зчитування зовнішньої напруги, що подається на АЦП, використовують функцію – `analogRead(A0)`, що повертає значення в діапазоні `0-1023`. При цьому вхідна напруга має бути в межах  `0 - 1.0 В`, але можна подавати на вхід напругу вище, рекомендовано до напруги живлення (`VCC – 3.3V`).
 
 ```c
-// pins for the LEDs:
+// Контакти для діодів:
 const int redPin = D6;        // Створення константи "redPin" що буде рівнятися номеру ніжки
                               // мікроконтролера з ім'ям "D6" (Насправді D6 = 12, див. рисунки)
 const int greenPin = D5;
 const int bluePin = D4;
  
 void setup() {
-  // make the pins outputs:
-  pinMode(redPin, OUTPUT);    // налагтування ніжки redPin в режим виходу
+  pinMode(redPin, OUTPUT);    // Налаштування ніжки redPin в режим виходу
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 }
@@ -311,7 +315,13 @@ void loop() {
 
 ### Передавання даних на комп'ютер
 
-Об'єкт `Serial` працює так само, як і з `Arduino`. Крім апаратного `FIFO` (128 байт для передачі – `TX` та прийому – `RX`), `Serial` має додаткові 256-байт для `TX` та `RX` в буфері. Передача, і прийом даних виконується по перериваннях, прозоро до вашого скетчу. Функції запису та читання блокують виконання програми лише тоді, коли `FIFO` – заповнений, або буфер – пустий. Зверніть увагу, що довжину додаткового 256-бітового буфера можна налаштувати.
+Для взаємодії з комп'ютером слід налаштувати швидкість обміну по послідовному інтерфейсу в бітах за секунду (бодах). Це можна зробити налаштувавши об'єкт `Serial` за допомогою функції `Serial.begin(baudrate)`, де `baudrate` – це швидкість передачі в бод (baud). Існує стандартизований ряд швидкостей, який підтримує вбудований серійний монітор середовища `Arduino IDE`: 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200 і вище. Щоб скористатися ним натисніть кнопку збільшованьного скельця на панелі інструментів, або натисніть комбінацію клавіш `Ctrl+Shift+M`, та оберіть таку ж швидкість передачі яку встановили в скетчі.
+
+![Монітор послідовного порту](ESP8266/SerialPort.png)
+
+Ви можете використати вбудований серійний монітор середовища `Arduino IDE` для спілкування з платою `ESP8266`. Натисніть кнопку серійного монітора на панелі інструментів та оберіть таку ж швидкість передачі яку встановили в скетчі.
+
+Об'єкт `Serial` працює так само, як і з `Arduino`. Крім апаратного `FIFO` (128 байт для передачі – `TX` та прийому – `RX`), `Serial` має додаткові 256-байт для `TX` та `RX` в буфері. Передача, і прийом даних виконується по перериваннях, відповідно вашому скетчу. Функції запису та читання блокують виконання програми лише тоді, коли `FIFO` – заповнений, або буфер – пустий. Зверніть увагу, що довжину додаткового 256-бітового буфера можна налаштувати.
 
 `Serial` використовує `UART0`, який зіставляється з пінами `GPIO1` (`TX`) та `GPIO3` (`RX`). Ці контакти можуть бути переназначені на `GPIO15` (`TX`) і `GPIO13` (`RX`), викликом функції – `Serial.swap()` після `Serial.begin()`. Повторний виклик – `Serial.swap()` знову повертає `UART0` назад. 
 
@@ -319,13 +329,13 @@ void loop() {
 
 Якщо `Serial1` не використовується, а `Serial` не був перекинутий, то `TX` для `UART0` може бути зіставлений з `GPIO2` викликом команди `Serial.set_tx(2)` після `Serial.begin` або безпосередньо `Serial.begin(Baud, Config, Mode, 2)`.
 
-За замовчанням діагностична інформація від бібліотек `Wi-Fi` вимикається після виклику `Serial.begin()`. Для моніторингу налагоджувальної інформації на `UART0` використайте – `Serial.setDebugOutput(true)`. Щоб спрямувати вивід – інформації на `Serial1` використайте – `Serial1.setDebugOutput(true)`.
+За замовчанням діагностична інформація від бібліотек `Wi-Fi` з'являється після виклику `Serial.begin()`. Для моніторингу налагоджувальної інформації на `UART0` використайте `Serial.setDebugOutput(true)`. Щоб спрямувати вивід – інформації на `Serial1` використайте `Serial1.setDebugOutput(true)`.
 
-Вам також слід використовувати – `Serial.setDebugOutput(true)`, щоб активувати стандартну функцію виводу – `printf()`.
+Також слід використати – `Serial.setDebugOutput(true)`, щоб активувати стандартну функцію виводу – `printf()`.
 
-Метод – `Serial.setRxBufferSize(size_t size)` дозволяє задати розмір приймального буфера. Значення за замовчуванням - 256.
+Метод `Serial.setRxBufferSize(size_t size)` дозволяє задати розмір приймального буфера. Значення за замовчуванням - 256.
 
-`Serial` та `Serial1` підтримують 5, 6, 7, 8 біт даних, odd(O), even(E), no (N) режими парності, 1 або 2 стоп біта. Для вибору потрібного режиму викличте – `Serial.begin(baudrate, SERIAL_8N1)`; або `Serial.begin(baudrate, SERIAL_6E2)`; і т.д.
+Необов'язковий другий аргумент цієї функції дозволяє для `Serial` та `Serial1` налаштувати: 5, 6, 7, 8 біт даних, odd(O), even(E), no (N) режими перевірки парності, 1 або 2 стоп біта. Для вибору потрібного режиму викличте `Serial.begin(baudrate, SERIAL_8N1)`; або `Serial.begin(baudrate, SERIAL_6E2)`; і т.д. За замовчуванням, посилка складається з 8 біт даних, без перевірки парності, з одним стоповим бітом.
 
 Нижче приведено приклад програми перевірки послідовного порта, яка виконує функцію ехо, тобто повернення у термінал даних. що були відправлені на мікроконтролер. 
   
@@ -344,60 +354,58 @@ void setup() {
 }
  
 void loop() {
-  while(Serial.available() > 0) {
-    Serial.write(Serial.read()); // Еchо - те що буде відіслано те і повернеться
-    if(Serial.available() == 0)
-      Serial.println();
+  while(Serial.available() > 0) { // Цикл з перевіркою на наявність прийнятих даних
+    Serial.write(Serial.read());  // Реалізація Еchо - те що буде відіслано те і повернеться
+    if(Serial.available() == 0)   // Відстеження кінця повідомленння
+      Serial.println();           // Створення вставок з символу переходу на новий рядок 
+                                  // для розділення повідомлень
   }
 }
 ```
 
 Описаний вище метод, також підтримується офіційною `ESP8266 Software Serial` бібліотекою.
 
-Зверніть увагу , що ця реалізація дійсна тільки для плат на базі `ESP8266`, і не буде працювати з іншими платами `Arduino`.
+> Зверніть увагу , що така реалізація дійсна тільки для плат на базі `ESP8266`, і не буде працювати з іншими платами `Arduino`.
 
-Існують багато різноманітних функцій для роботи з типом `String`, і об’єкт – `Serial` співпрацює з ними, тому їх застосування буде доречним, а сам `Serial` є типом `Stream`.
+> Існують багато різноманітних функцій для роботи з типом `String`, і об’єкт – `Serial` співпрацює з ними, тому їх застосування буде доречним, а сам `Serial` є типом `Stream`.
 
 Далі наведено приклад реалізації керування світлодіодами з терміналу комп'ютера через послідовний порт.
 
 ```c
-// pins for the LEDs:
+// Дана програма керує ШІМ на вказаних нижче пінах за допомогою команд з послідовного порту,
+// і приймає відразу 3 значення. Приклад введення команди - "30 1 255".
+
 const int redPin = D1;
 const int greenPin = D2;
 const int bluePin = D4;
  
 void setup() {
-  // initialize serial:
   Serial.begin(9600);
-  // make the pins outputs:
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
 }
  
 void loop() {
-  // if there's any serial available, read it:
   while (Serial.available() > 0) {
 
-    // look for the next valid integer in the incoming serial stream:
-    int red = Serial.parseInt();
-    Serial.print(red, DEC);
+    int red = Serial.parseInt(); // Автоматичне розпізнавання цілих чисел у вхідному повідомлені, до знаку що не буде числом
+    Serial.print(red, DEC); // Вивід у десятковому вигляді
     Serial.print(" ");
-    // do it again:
+    
     int green = Serial.parseInt();
-    Serial.print(green, HEX);
+    Serial.print(green, HEX); // Вивід у шіснадцятковому вигляді
     Serial.print(" ");
-    // do it again:
+
     int blue = Serial.parseInt();
-    Serial.print(blue, BIN);
+    Serial.print(blue, BIN); // Вивід у бінарному вигляді
     Serial.print(" ");
  
-    // fade the red, green, and blue legs of the LED:
     analogWrite(redPin, red);
     analogWrite(greenPin, green);
     analogWrite(bluePin, blue);
  
-    // print the three numbers in one string as hexadecimal:
+    // Друкує три числа в одному рядку у шіснадцятковому вигляді:
     Serial.print(red, HEX);
     Serial.print(green, HEX);
     Serial.println(blue, HEX);
@@ -411,6 +419,8 @@ void loop() {
 
 Перелік посилань:	
 ---
-1. http://esp8266.github.io/Arduino/versions/2.3.0/
+1. http://arduino-esp8266.readthedocs.io/en/latest/
+1. https://github.com/esp8266/Arduino
+1. https://learn.acrobotic.com/esp8266
 
 
