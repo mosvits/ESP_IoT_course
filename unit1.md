@@ -262,12 +262,16 @@ void setup() {
   pinMode(redPin, OUTPUT);    // Налаштування ніжки redPin в режим виходу
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+
+  // Не обов'язкові налаштування ШІМ
+  analogWriteFreq(100);       // Задаємо частоту ШІМ в 100 Герц
+  analogWriteRange(10);       // Задаємо рівень квантування заповненості ШІМ
 }
  
 void loop() {
-  analogWrite(redPin, random(256)); // функція - random(256) генерує випадкове число в діапазоні 0 - 255
-  analogWrite(greenPin, random(256));
-  analogWrite(bluePin, random(256));
+  analogWrite(redPin, random(10)); // функція - random(10) генерує випадкове число в діапазоні 0 - 9
+  analogWrite(greenPin, random(10));
+  analogWrite(bluePin, random(10));
   delay(300);                       // Застримка на 300  мілісекунд
 }
 
@@ -293,20 +297,24 @@ void setup() {
   pinMode(redPin, OUTPUT);    // Налаштування ніжки redPin в режим виходу
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+
+  // Не обов'язкові налаштування ШІМ
+  analogWriteFreq(100);       // Задаємо частоту ШІМ в 100 Герц
+  analogWriteRange(10);       // Задаємо рівень квантування заповненості ШІМ
 }
  
 void loop() {
   int value = analogRead(A0); // Зчитування напруги з аналогово входу А0 в діапазоні 0 - 1.0 Вольт 
                               // та представлення результату в діапазоні 0 - 1023
-  value = map(value, 0, 1023, 0, 255); // Конвертування значенння "value" з діапазона 0-1023 в 0-255
+  value = map(value, 0, 1023, 0, 10); // Конвертування значенння "value" з діапазона 0-1023 в 0-10
   analogWrite(redPin, value); // На ніжці redPin генерування Широтно Імпульсної Маніпуляції (див. урок)
   delay(100);                 // Застримка на 100  мілісекунд
   value = analogRead(A0);
-  value = map(value, 0, 1023, 0, 255);
+  value = map(value, 0, 1023, 0, 10);
   analogWrite(greenPin, value);
   delay(100);
   value = analogRead(A0);
-  value = map(value, 0, 1023, 0, 255);
+  value = map(value, 0, 1023, 0, 10);
   analogWrite(bluePin, value);
   delay(100);
 }
@@ -384,6 +392,9 @@ void setup() {
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
+
+  // Не обов'язкові налаштування ШІМ
+  analogWriteRange(256);       // Задаємо рівень квантування заповненості ШІМ
 }
  
 void loop() {
