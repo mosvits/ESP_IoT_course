@@ -332,9 +332,9 @@ void loop() {
   delay(1);
 }
 ```
-![sssss1](Image/SSDP/Arduino_Beregening_Network.png)
+![sssss1](Image/SSDP/Arduino_Beregening_Network.PNG)
 
-![sssss2](Image/SSDP/Arduino_Beregening_Properties.png)
+![sssss2](Image/SSDP/Arduino_Beregening_Properties.PNG)
 
 [//]: ## "Завдання" 
 
