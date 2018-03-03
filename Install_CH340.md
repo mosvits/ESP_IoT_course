@@ -16,8 +16,9 @@
 
 ![Device Manager](CH340/USB2.0-Serial.jpg)
 
-> Щоб відкрити "Диспетчер пристроїв", для Windows, натисніть комбінацію клавіш `Win+R` та у вікні, що з'явилося, надрукувати: `devmgmt.msc`
-> ![Win+R](CH340/Win+R.png) 
+> Щоб відкрити "Диспетчер пристроїв", для Windows, натисніть комбінацію клавіш `Win+R` та у вікні, що з'явилося, надрукуйте: `devmgmt.msc` і підтвердіть.
+
+> ![Win+R](CH340/Win+R.png)
 > ![Run](CH340/Device_manager.png)
 
 Для початку завантажимо драйвер [CH340](https://sparks.gogo.co.nz/assets/_site_/downloads/CH34x_Install_Windows_v3_4.zip) для Windows.
@@ -29,7 +30,7 @@
 
 ![USB-SERIAL CH340](CH340/drive_successfully.png)
 
-диспетчер пристроїв оновить інформації і в вікні "Порты COM и LPT" з'явиться наш підключений пристрій:
+диспетчер пристроїв оновить інформацію і в вікні "Порты COM и LPT" та з'явиться наш підключений пристрій:
 
 ![USB-SERIAL CH340](CH340/USB-SERIAL_CH340.jpg)
 
