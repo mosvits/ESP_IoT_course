@@ -1,9 +1,28 @@
 Урок 2. 
 ============
 
+Зміст
+-------
+
+   * [Особливості відладки програм (Debugging)](#Особливості-відладки-програм-(debugging))
+      * [Вимоги для можливості відладки](#Вимоги-для-можливості-відладки)
+      * [Послідовність налаштування відладки](#Послідовність-налаштування-відладки)
+      * [Приклад налаштування власних повідомлень відладчика](#Приклад-налаштування-власних-повідомлень-відладчика)
+      * [Дамп стеку](#Дамп-стеку)
+   * [Навчальні приклади для програмування `ESP8266`](#Навчальні-приклади-для-програмування-esp8266)
+      * [Функції формування часових затримок та подій](#Функції-формування-часових-затримок-та-подій)
+      * [Бібліотека "Ticker" для програмного переривання за таймером](#Бібліотека-ticker-для-програмного-переривання-за-таймером)
+      * [Спеціальні команди - "APIs" для ESP](#Спеціальні-команди-apis-для-esp)
+      * [SSDP автовідповідач (ESP8266SSDP)](#SSDP-автовідповідач-(ESP8266SSDP))
+   * [Завдання](#tests)
+   * [Перелік посилань](#Перелік-посилань)
+
+***
+
+
 ## Особливості відладки програм (Debugging)
 
-З версії `2.1.0-rc1` `Arduino IDE` з'явилася функція відладки, яка управляється над меню `IDE`. В цьому меню можливо налаштувати повідомлення, що з'являються в режимі реального часу.
+З версії `2.1.0-rc1` в `Arduino IDE` з'явилася функція відладки, яка управляється над меню `IDE`. В цьому меню можливо налаштувати повідомлення, що з'являються в режимі реального часу.
 
 ### Вимоги для можливості відладки
 
@@ -124,9 +143,11 @@ It’s possible to decode the Stack to readable information. For more info see t
 
   ![послідовний інтерфейс](ESP8266/ESP_Exception_Decoderp.png)
 
+## Навчальні приклади для програмування `ESP8266`
 
 
-## Функції формування часових затримок та подій
+
+### Функції формування часових затримок та подій
     
 Функції `millis()` і `micros()` повертають кількість мілісекунд і мікросекунд відповідно, що минули після скидання.
     
@@ -139,6 +160,176 @@ It’s possible to decode the Stack to readable information. For more info see t
 Якщо у вас в програмі є будь яке оброблення, що займає багато часу (> 50 мс) без виклику `delay`, ви можете розглянути варіант спеціально додати виклик функції `delay`  для підтримки нормального виконання стеку `Wi-Fi`.
     
 Існує також функція `yield()`, яка еквівалентна `delay(0)`. Функція  `delayMicroseconds` не поступається часом виконання іншим завданням, тому використання її для затримки більш ніж на 20 мілісекунд не рекомендується.
+
+
+### Бібліотека "Ticker" для програмного переривання за таймером
+
+Ця бібліотека призначена для програмного переривання за таймером. 
+Щоб підключити переривання, для початку треба підключити бібліотеку за допомогою наступного рядка:
+``` c
+#include <Ticker.h>
+```
+
+Після чого створюємо один або декілька екземплярів, залежно від кількості необхідних переривань.
+``` c
+Ticker name, name2;
+```
+
+Для створених екземплярів `name` та `name2` ми можемо підключити періодичні переривання, за допомогою двох функцій, які в свою чергу мають два [перевантаження](https://uk.wikipedia.org/wiki/%D0%9F%D0%B5%D1%80%D0%B5%D0%B2%D0%B0%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D0%BD%D0%BD%D1%8F_%D1%84%D1%83%D0%BD%D0%BA%D1%86%D1%96%D1%97):
+Для періодичності в секундах без аргументів функції `callback`:
+``` c
+name.attach(seconds, callback);
+```
+
+Для періодичності в секундах з аргументом arg для функції `callback`:
+``` c
+name.attach(seconds, callback, arg);
+```
+
+Для періодичності в мілісекундах без аргументів функції `callback`:
+name.attach_ms(miliseconds, callback);
+
+Для періодичності в мілісекундах з аргументом arg для функції `callback`:
+``` c
+name.attach_ms(miliseconds, callback, arg);
+```
+
+Як ви вже здогадалися `callback` це ім’я нашої функції яка буде викликатися при перериванні, а її аргумент `arg` може бути лише один. 
+Для підключення переривання лиш раз треба використовувати функції, що дуже подібні до попередніх:
+``` c
+name.once(seconds, callback);
+name.once(seconds, callback, arg);
+name.once_ms(miliseconds, callback);
+name.once_ms(miliseconds, callback, arg);
+```
+
+Параметри `seconds`  та `miliseconds` – це час, з моменту виклику функції підключення, до переривання.
+Існує ще дві не менш важливі функції  – `detach`, що відключає переривання, та `active`, що повертає відомість активності переривання, логічного типу (`bool`).
+``` c
+name.detach();
+bool check = name.active();
+```
+
+
+Не рекомендується використовувати функцію `callback` (зворотного виклику) для блокування операцій входу/виходу (мережі, послідовного порту, файлу)!
+Також існує бібліотека [TickerScheduler](https://github.com/Toshik/TickerScheduler) що базується на `Ticker` і дозволяє працювати з `Task` та допомагає уникнути проблем з `WDT` (сторожовий таймер). 
+
+### Спеціальні команди "APIs" для ESP
+
+Деякі API специфічних можливостей ESP, пов'язані з режимом глибокого сну, RTC (точного часу) і флеш-пам'яті доступні в об'єкті – `ESP`. Так, наприкладБ функція `ESP.deepSleep(microseconds, mode)` переводить модуль в режим глибокого сну. Параметр mode може приймати значення: `WAKE_RF_DEFAULT`,  `WAKE_RFCAL`,  `WAKE_NO_RFCAL`,  `WAKE_RF_DISABLED`. Для виходу з режиму глибокого сну, треба з'єднати GPIO16 з RESET.
+`ESP.rtcUserMemoryWrite(offset, & data, sizeof (data))` та `ESP.rtcUserMemoryRead(offset, & data, sizeof (data))` дозволяють записувати дані та зчитувати їх з пам'яті RTC відповідно. Загальний розмір користувальницької пам'яті RTC складає 512 байт, тому `offset + sizeof(data)` не повинні перевищувати 512.Змінна – `data` повинна бути рівна 4-м байтам. Збережені дані можуть зберігатися між циклами глибокого сну. Однак ці дані можуть бути втрачені після скидання живлення на чіпі.
+
+Функції `ESP.wdtEnable()` , `ESP.wdtDisable()` , і `ESP.wdtFeed()` керують сторожовим таймером.
+
+`ESP.reset()` перезавантажує модуль
+`ESP.getResetReason()` повертає String, що містить останню причину скидання в читабельному вигляді.
+`ESP.getFreeHeap()` повертає розмір вільної пам'яті
+`ESP.getCoreVersion()` повертає String, що містить версію ядра.
+`ESP.getSdkVersion()` повертає версію SDK як char.
+`ESP.getCpuFreqMHz()` повертає частоту процесора в МГц як uint 8-bit.
+`ESP.getSketchSize()` повертає розмір поточного скетчу як uint 32-bit.
+`ESP.getFreeSketchSpace()` повертає вільне простір ескізу як uint 32-bit.
+`ESP.getSketchMD5()` повертає нижній регістр String що містить MD5 поточного скетчу.
+`ESP.getChipId()` повертає ESP8266 chip IDE, int 32bit
+`ESP.getFlashChipId()` повертає flash chip ID, int 32bit
+`ESP.getFlashChipSize()` повертає розмір флеш пам'яті в байтах, так, як його визначає SDK (може бути менше реального розміру).
+`ESP.getFlashChipRealSize()` повертає дійсний розмір чіпа в байтах на основі flash chip ID.
+`ESP.getFlashChipSpeed(void)` повертає частоту флеш пам'яті, в Гц.
+`ESP.getCycleCount()` повертає кількість циклів CPU з моменту старту, unsigned 32-bit. Може бути корисна для точного таймінгу дуже коротких операцій
+`ESP.getVcc()` може використовуватися для вимірювання напруги живлення. ESP має переналаштувати АЦП під час запуску, щоб ця функція була доступною. Додайте наступний рядок у верхній частині скетча, щоб скористатися цією функцією:
+``` c
+ADC_MODE(ADC_VCC);
+```
+TOUT (ADC) пін повинен бути не задіяний периферією в цьому режимі.
+Зверніть увагу, що по замовчанню ADC налаштовується для зчитування напруги і використання `analogRead(A0)` та `ESP.getVCC()` недоступне.
+
+
+### SSDP автовідповідач (ESP8266SSDP)
+
+SSDP - це ще один протокол виявлення сервісів, який підтримується на Windows із коробки. Доданий приклад для довідки.
+
+``` c
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266SSDP.h>
+
+const char* ssid = "************";
+const char* password = "***********";
+
+ESP8266WebServer HTTP(80);
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  Serial.println("Starting WiFi...");
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  if(WiFi.waitForConnectResult() == WL_CONNECTED){
+
+    Serial.printf("Starting HTTP...\n");
+    HTTP.on("/index.html", HTTP_GET, [](){
+      HTTP.send(200, "text/plain", "Hello World!");
+    });
+    HTTP.on("/description.xml", HTTP_GET, [](){
+      SSDP.schema(HTTP.client());
+    });
+    HTTP.begin();
+
+    Serial.printf("Starting SSDP...\n");
+    SSDP.setDeviceType("upnp:rootdevice");
+    SSDP.setSchemaURL("description.xml");
+    SSDP.setHTTPPort(80);
+    SSDP.setName("Philips hue clone");
+    SSDP.setSerialNumber("001788102201");
+    SSDP.setURL("index.html");
+    SSDP.setModelName("Philips hue bridge 2012");
+    SSDP.setModelNumber("929000226503");
+    SSDP.setModelURL("http://www.meethue.com");
+    SSDP.setManufacturer("Royal Philips Electronics");
+    SSDP.setManufacturerURL("http://www.philips.com");
+    SSDP.begin();
+
+    Serial.printf("Ready!\n");
+  } else {
+    Serial.printf("WiFi Failed\n");
+    while(1) delay(100);
+  }
+}
+
+void loop() {
+  HTTP.handleClient();
+  delay(1);
+}
+```
+![sssss1](Image/SSDP/Arduino_Beregening_Network.png)
+
+![sssss2](Image/SSDP/Arduino_Beregening_Properties.png)
+
+[//]: ## "Завдання" 
+
+
+
+Перелік посилань:	
+---
+1. http://arduino-esp8266.readthedocs.io/en/latest/
+1. https://github.com/esp8266/Arduino
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 **********
 
