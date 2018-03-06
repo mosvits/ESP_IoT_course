@@ -234,44 +234,33 @@ bool check = name.active();
 
 Функції `ESP.wdtEnable()` , `ESP.wdtDisable()` , і `ESP.wdtFeed()` керують сторожовим таймером.
 
-`ESP.reset()` перезавантажує модуль
+Функція | Результат виконання
+--- | --- 
+`ESP.reset()` | перезавантажує модуль
+`ESP.getResetReason()` | повертає String, що містить останню причину скидання в читабельному вигляді.
+`ESP.getFreeHeap()` | повертає розмір вільної пам'яті
+`ESP.getCoreVersion()`|  повертає String, що містить версію ядра.
+`ESP.getSdkVersion()` | повертає версію SDK як char.
+`ESP.getCpuFreqMHz()` | повертає частоту процесора в МГц як uint 8-bit.
+`ESP.getSketchSize()` | повертає розмір поточного скетчу як uint 32-bit.
+`ESP.getFreeSketchSpace()` | повертає вільне простір ескізу як uint 32-bit.
+`ESP.getSketchMD5()` | повертає нижній регістр String що містить MD5 поточного скетчу.
+`ESP.getChipId()` | повертає ESP8266 chip IDE, int 32bit
+`ESP.getFlashChipId()` | повертає flash chip ID, int 32bit
+`ESP.getFlashChipSize()` | повертає розмір флеш пам'яті в байтах, так, як його визначає SDK (може бути менше реального розміру).
+`ESP.getFlashChipRealSize()` | повертає дійсний розмір чіпа в байтах на основі flash chip ID.
+`ESP.getFlashChipSpeed(void)` | повертає частоту флеш пам'яті, в Герцах.
+`ESP.getCycleCount()` | повертає кількість циклів CPU з моменту старту, unsigned 32-bit. Може бути корисна для точного таймінгу дуже коротких операцій
+`ESP.getVcc()` | повертає напругу живлення модуля, але потребує додаткового налаштування перед запуском, що описано нижче
 
-`ESP.getResetReason()` повертає String, що містить останню причину скидання в читабельному вигляді.
-
-`ESP.getFreeHeap()` повертає розмір вільної пам'яті
-
-`ESP.getCoreVersion()` повертає String, що містить версію ядра.
-
-`ESP.getSdkVersion()` повертає версію SDK як char.
-
-`ESP.getCpuFreqMHz()` повертає частоту процесора в МГц як uint 8-bit.
-
-`ESP.getSketchSize()` повертає розмір поточного скетчу як uint 32-bit.
-
-`ESP.getFreeSketchSpace()` повертає вільне простір ескізу як uint 32-bit.
-
-`ESP.getSketchMD5()` повертає нижній регістр String що містить MD5 поточного скетчу.
-
-`ESP.getChipId()` повертає ESP8266 chip IDE, int 32bit
-
-`ESP.getFlashChipId()` повертає flash chip ID, int 32bit
-
-`ESP.getFlashChipSize()` повертає розмір флеш пам'яті в байтах, так, як його визначає SDK (може бути менше реального розміру).
-
-`ESP.getFlashChipRealSize()` повертає дійсний розмір чіпа в байтах на основі flash chip ID.
-
-`ESP.getFlashChipSpeed(void)` повертає частоту флеш пам'яті, в Гц.
-
-`ESP.getCycleCount()` повертає кількість циклів CPU з моменту старту, unsigned 32-bit. Може бути корисна для точного таймінгу дуже коротких операцій
-
-`ESP.getVcc()` може використовуватися для вимірювання напруги живлення. ESP має переналаштувати АЦП під час запуску, щоб ця функція була доступною. Додайте наступний рядок у верхній частині скетча, щоб скористатися цією функцією:
+Для роботи функції `ESP.getVcc()` ESP має переналаштувати АЦП під час запуску. Додайте наступний рядок у верхній частині скетча, щоб скористатися цією функцією:
 
 ``` c
 ADC_MODE(ADC_VCC);
 ```
 
-TOUT (ADC) пін повинен бути не задіяний периферією в цьому режимі.
-Зверніть увагу, що по замовчанню ADC налаштовується для зчитування напруги і використання `analogRead(A0)` та `ESP.getVCC()` недоступне.
+Пін A0 (АЦП) не повинен бути задіяний периферією в цьому режимі.
+Зверніть увагу, що по замовчанню АЦП налаштовується для зчитування напруги за допомогою `analogRead(A0)` і функція `ESP.getVCC()` недоступна.
 
 
 ### SSDP автовідповідач (ESP8266SSDP)
@@ -332,9 +321,10 @@ void loop() {
   delay(1);
 }
 ```
-![sssss1](Image/SSDP/Arduino_Beregening_Network.PNG)
 
-![sssss2](Image/SSDP/Arduino_Beregening_Properties.PNG)
+![Network](Image/SSDP/Arduino_Beregening_Network.PNG)
+
+![Properties](Image/SSDP/Arduino_Beregening_Properties.PNG)
 
 [//]: ## "Завдання" 
 
