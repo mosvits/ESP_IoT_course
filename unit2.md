@@ -1,4 +1,4 @@
-Урок 2. 
+Урок 2. Лагодження програм та  налаштування Wi-Fi точки доступу
 ============
 
 Зміст
@@ -14,6 +14,7 @@
       * [Бібліотека "Ticker" для програмного переривання за таймером](#Бібліотека-ticker-для-програмного-переривання-за-таймером)
       * [Спеціальні команди - "APIs" для ESP](#Спеціальні-команди-apis-для-esp)
       * [SSDP автовідповідач (ESP8266SSDP)](#SSDP-автовідповідач-(ESP8266SSDP))
+   * [Створення `Wi-Fi` точки доступу](#Створення-wi-fi-точки-доступу)   
    * [Завдання](#tests)
    * [Перелік посилань](#Перелік-посилань)
 
@@ -328,185 +329,168 @@ void loop() {
 
 [//]: ## "Завдання" 
 
+# Створення Wi-Fi точки доступу
 
+```c
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h> 
+#include <ESP8266WebServer.h>
+
+/* Set these to your desired credentials. */
+const char *ssid = "Microcloud_2";
+const char *password = "654321";
+
+ESP8266WebServer server(80);
+
+const int led = 2;  //GPIO2
+
+/* Just a little test message.  Go to http://192.168.4.1 in a web browser
+ * connected to this access point to see it.
+ */
+void handleRoot() {
+
+  int size=1000;
+  char temp[size];
+  
+  int sec = millis() / 1000;
+  int min = sec / 60;
+  int hr = min / 60;
+
+  snprintf ( temp, size,
+
+"<html>\
+  <head>\    
+    <title>MicroCloud</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <h3>You are connected on MicroCloud #2!</h3>\
+    <p>Uptime: %02d:%02d:%02d</p>\    
+    <p>Status: Light ON</h1></p>\
+    <p><a href=\"http://192.168.4.1/on\"><h1>Turn ON</h1></a></p>\
+    <p></p>\
+    <p><a href=\"http://192.168.4.1/off\"><h1>Turn OFF</h1></a></p>\           
+  </body>\
+</html>",
+
+    hr, min % 60, sec % 60
+  );
+  server.send ( 200, "text/html", temp );  
+  
+}
+
+void setup() {
+	delay(1000);
+	Serial.begin(9600);
+	Serial.println();
+	Serial.print("Configuring access point...");
+
+	/* You can remove the password parameter if you want the AP to be open. */
+	WiFi.softAP(ssid, password);
+
+	IPAddress myIP = WiFi.softAPIP();
+	Serial.print("AP IP address: ");
+	Serial.println(myIP);
+
+  pinMode(led, OUTPUT);
+  digitalWrite ( led, HIGH );
+
+  //URLs available to query
+	server.on("/", handleRoot);
+  server.on ( "/on", turnON );    
+  server.on ( "/off", turnOFF );
+	server.begin();
+	Serial.println("HTTP server started");
+  
+}
+
+void turnON(){
+
+  digitalWrite ( led, HIGH );
+
+  int size=1000;
+  char temp[size];
+
+  int sec = millis() / 1000;
+  int min = sec / 60;
+  int hr = min / 60;
+
+  snprintf ( temp, size,
+
+"<html>\
+  <head>\    
+    <title>MicroCloud</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <h3>Request: Light ON</h3>\
+    <p>Uptime: %02d:%02d:%02d</p>\
+    <p></p>\
+    <p>Status: Light ON</h1></p>\
+    <p><a href=\"http://192.168.4.1/on\"><h1>Turn ON</h1></a></p>\
+    <p></p>\
+    <p><a href=\"http://192.168.4.1/off\"><h1>Turn OFF</h1></a></p>\       
+  </body>\
+</html>",
+
+    hr, min % 60, sec % 60
+  );
+
+  server.send ( 200, "text/html", temp);
+  
+}
+
+void turnOFF(){
+
+  digitalWrite ( led, LOW );
+
+  int size=1000;
+  char temp[size];
+
+  int sec = millis() / 1000;
+  int min = sec / 60;
+  int hr = min / 60;
+
+  snprintf ( temp, size,
+
+"<html>\
+  <head>\    
+    <title>MicroCloud</title>\
+    <style>\
+      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
+    </style>\
+  </head>\
+  <body>\
+    <h3>Request: Light OFF</h3>\
+    <p>Uptime: %02d:%02d:%02d</p>\
+    <p>Status: Light OFF</p>\
+    <p><a href=\"http://192.168.4.1/on\"><h1>Turn ON</h1></a></p>\
+    <p></p>\
+    <p><a href=\"http://192.168.4.1/off\"><h1>Turn OFF</h1></a></p>\       
+  </body>\
+</html>",
+
+    hr, min % 60, sec % 60
+  );
+
+  server.send ( 200, "text/html", temp);
+  
+}
+
+void loop() {
+	server.handleClient();
+}
+```
 
 Перелік посилань:	
 ---
 1. http://arduino-esp8266.readthedocs.io/en/latest/
 1. https://github.com/esp8266/Arduino
+1. https://create.arduino.cc/projecthub/luciorocha/esp8266-control-led-with-smartphone-8a59f3
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-**********
-
-
-Paragraphs are separated by a blank line.
----
-2nd paragraph. *Italic*, **bold**, and `monospace`. Itemized lists
-look like:
-
-  * this one
-  * that one
-  * the other one
-
-Note that --- not considering the asterisk --- the actual text
-content starts at 4-columns in.
-
-> Block quotes are
-> written like so.
->
-> They can span multiple paragraphs,
-> if you like.
-
-Use 3 dashes for an em-dash. Use 2 dashes for ranges (ex., "it's all
-in chapters 12--14"). Three dots ... will be converted to an ellipsis.
-Unicode is supported. ☺
-
-
-
-An h2 header
-------------
-
-Here's a numbered list:
-
- 1. first item
- 2. second item
- 3. third item
-
-
-### An h3 header ###
-
-Now a nested list:
-
- 1. First, get these ingredients:
-
-      * carrots
-      * celery
-      * lentils
-
- 2. Boil some water.
-
- 3. Dump everything in the pot and follow
-    this algorithm:
-
-        find wooden spoon
-        uncover pot
-        stir
-        cover pot
-        balance wooden spoon precariously on pot handle
-        wait 10 minutes
-        goto first step (or shut off burner when done)
-
-    Do not bump wooden spoon or it will fall.
-
-Notice again how text always lines up on 4-space indents (including
-that last line which continues item 3 above).
-
-Here's a link to [a website](http://foo.bar), to a [local
-doc](local-doc.html), and to a [section heading in the current
-doc](#an-h2-header). Here's a footnote [^1].
-
-[^1]: Footnote text goes here.
-
-Tables can look like this:
-
-size  material      color
-----  ------------  ------------
-9     leather       brown
-10    hemp canvas   natural
-11    glass         transparent
-
-Table: Shoes, their sizes, and what they're made of
-
-(The above is the caption for the table.) Pandoc also supports
-multi-line tables:
-
---------  -----------------------
-keyword   text
---------  -----------------------
-red       Sunsets, apples, and
-          other red or reddish
-          things.
-
-green     Leaves, grass, frogs
-          and other things it's
-          not easy being.
---------  -----------------------
-
-A horizontal rule follows.
-
-***
-
-Here's a definition list:
-
-apples
-  : Good for making applesauce.
-oranges
-  : Citrus!
-tomatoes
-  : There's no "e" in tomatoe.
-
-Again, text is indented 4 spaces. (Put a blank line between each
-term/definition pair to spread things out more.)
-
-Here's a "line block":
-
-| Line one
-|   Line too
-| Line tree
-
-and images can be specified like so:
-
-![example image](example-image.jpg "An exemplary image")
-
-Inline math equations go in like so: $\omega = d\phi / dt$. Display
-math should get its own line and be put in in double-dollarsigns:
-
-$$I = \int \rho R^{2} dV$$
-
-And note that you can backslash-escape any punctuation characters
-which you wish to be displayed literally, ex.: \`foo\`, \*bar\*, etc.
-
-
-Приклади оформлення:
----
-Colons can be used to align columns.
-
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-
-There must be at least 3 dashes separating each header cell.
-The outer pipes (|) are optional, and you don't need to make the 
-raw Markdown line up prettily. You can also use inline Markdown.
-
-
-
-Three or more...
-
----
-
-Hyphens
-***
-
-Asterisks
-
-___
-
-Underscores
