@@ -1,46 +1,155 @@
-gh-md-toc
-=========
-
-gh-md-toc — is for you if you **want to generate TOC** for README.md or
-GitHub's wiki page and **don't want to install any additional software**.
-
-It's my try to fix a problem:
-
-  * [github/issues/215](https://github.com/isaacs/github/issues/215)
-
-gh-md-toc is able to process:
-
-  * stdin
-  * local files (markdown files in local file system)
-  * remote files (html files on github.com)
-
-gh-md-toc tested on Ubuntu, and macOS High Sierra (gh-md-toc release 0.4.9). If you want it on Windows, you
-better to use a golang based implementation:
-
-  * [github-markdown-toc.go](https://github.com/ekalinin/github-markdown-toc.go)
-
-It's more solid, reliable and with ability of a parallel processing. And
-absolutely without dependencies.
-
-[![Build Status](https://travis-ci.org/ekalinin/github-markdown-toc.svg?branch=master)](https://travis-ci.org/ekalinin/github-markdown-toc)
 
 Table of contents
 =================
 
 <!--ts-->
-   * [gh-md-toc](#gh-md-toc)
-   * [Table of contents](#table-of-contents)
-   * [Installation](#installation)
-   * [Usage](#usage)
-      * [STDIN](#stdin)
-      * [Local files](#local-files)
-      * [Remote files](#remote-files)
-      * [Multiple files](#multiple-files)
-      * [Combo](#combo)
-      * [Auto insert and update TOC](#auto-insert-and-update-toc)
-   * [Tests](#tests)
-   * [Dependency](#dependency)
+   * [Робота з бібліотеками `ESP8266`](#Робота-з-бібліотеками-esp8266)
+      * [Функції формування часових затримок та подій](#Функції-формування-часових-затримок-та-подій)
+      * [Бібліотека "Ticker". Формування періодичних подій за перериваннями від таймера](#Бібліотека-ticker-Формування-періодичних-подій-за-перериваннями-від-таймера)
+      * [Спеціальні функції та команди для ESP8266](#Спеціальні-функції-та-команди-для-esp8266)
 <!--te-->
+
+
+
+# Робота з бібліотеками `ESP8266`
+
+
+
+### Функції формування часових затримок
+    
+Функції `millis()` і `micros()` повертають кількість мілісекунд і мікросекунд, що минули після скидання (`RESET`).
+    
+Функція `delay(ms)` призупиняє роботу основної програми на заданий час в мілісекундах і резервує цей час для обробки завдань `Wi-Fi` та `TCP/IP`. 
+
+Функція `delayMicroseconds(us)` призначена для паузи на задане число мікросекунд.
+    
+> Пам'ятайте, що для стабільної роботи `Wi-Fi` потрібно періодично виділяти для нього час. Функції з бібліотек`Wi-Fi` і `TCP/IP`  отримують можливість обробляти свої події щоразу після проходження функції `loop()` або у разі виклику функції `delay`. 
+    
+Якщо алгоритм оброблення в `Loop()` займає час більше ніж 50 мс, то слід подбати про виклик `delay(0)` саме для підтримки нормальної роботи `Wi-Fi`. Для цього також можливо використовувати функцію `yield()`, яка є еквівалентною `delay(0)`. 
+
+> Функція  `delayMicroseconds()` не поступається часом виконання іншим завданням, тому використання її для затримки більш ніж на 20 мілісекунд не рекомендується.
+
+
+### Бібліотека "Ticker". Формування періодичних подій за перериваннями від таймера
+
+Ця бібліотека призначена для програмного переривання за таймером. 
+
+Щоб підключити переривання, для початку треба підключити бібліотеку :
+```c
+#include <Ticker.h>
+```
+
+Далі створюємо один або декілька екземплярів переривань, залежно від потреби:
+```c
+Ticker name, name2;
+```
+
+Для створених екземплярів `name` та `name2` ми можемо налаштувати переривання, що будуть формуватися з заданою періодичністю. 
+
+Налаштування періодичності можливо здійснити за допомогою функцій `attach` та `attach_ms` з параметрами для визначення періоду в секундах (`seconds`) або ()мілісекундах `miliseconds`)  та функції `callback`, що має бути викликана щоразу при виникнені переривання.
+
+``` c
+name.attach(seconds, callback);
+name2.attach_ms(miliseconds, callback2);
+```
+
+До функції `callback` також можливо додати аргументи `arg`:
+
+``` c
+name.attach(seconds, callback, arg);
+name2.attach_ms(miliseconds, callback, arg);
+```
+
+
+Отже `callback` - це ім’я функції, що буде викликатися щоразу при перериванні, а її аргумент `arg` може бути лише один. 
+
+Для налаштування формування переривання лише раз треба використовувати функції, що дуже подібні до попередніх:
+
+``` c
+name.once(seconds, callback);
+name.once(seconds, callback, arg);
+name.once_ms(miliseconds, callback);
+name.once_ms(miliseconds, callback, arg);
+```
+
+Існує ще дві не менш важливі функції  – `detach`, що відключає переривання та `active`, що повертає стан переривання у форматі `bool`.
+``` c
+name.detach();
+bool check = name.active();
+```
+
+
+> Також існує бібліотека [TickerScheduler](https://github.com/Toshik/TickerScheduler), що базується на `Ticker` і дозволяє працювати з `Task` та допомагає уникнути проблем з сторожовим таймером `WDT`. 
+
+Приклад:
+
+```c
+void setup() {
+
+}
+
+void loop() {
+
+}
+```
+
+### Спеціальні функції та команди для ESP8266
+
+Спеціальні функції ESP пов'язані з режимом глибокого сну, RTC (точного часу) і флеш-пам'яті. Дані функції доступні в об'єкті – `ESP`. 
+
+Так, наприклад, функція `ESP.deepSleep(microseconds, mode)` переводить модуль в режим глибокого сну. Параметр mode може приймати значення: 
+* `WAKE_RF_DEFAULT`,  
+* `WAKE_RFCAL`,  
+* `WAKE_NO_RFCAL`,  
+* `WAKE_RF_DISABLED`. 
+
+Для виходу з режиму глибокого сну, треба з'єднати GPIO16 з RESET.
+
+Функції `ESP.rtcUserMemoryWrite(offset, & data, sizeof (data))` та `ESP.rtcUserMemoryRead(offset, & data, sizeof (data))` дозволяють записувати та зчитувати дані з пам'яті `RTC`. Загальний розмір пам'яті `RTC` складає 512 байт, тому `offset + sizeof(data)` не повинні перевищувати 512. Змінна – `data` повинна бути рівна 4-м байтам. Збережені дані можуть зберігатися між циклами глибокого сну. 
+
+> Інформація в `RTC` втачається після вимикання живлення.
+
+Функції `ESP.wdtEnable()`, `ESP.wdtDisable()` і `ESP.wdtFeed()` керують сторожовим таймером.
+
+Функція | Результат виконання
+--- | --- 
+`ESP.reset()` | Перезавантаження модуля
+`ESP.getResetReason()` | Отримання інформації у форматі String про причину виникнення RESET.
+`ESP.getFreeHeap()` | Визначити розмір вільної пам'яті
+`ESP.getCoreVersion()`| Отримання інформації у форматі String з версіэю ядра процесора.
+`ESP.getSdkVersion()` | Отримання інформації про версію SDK у форматі char.
+`ESP.getCpuFreqMHz()` | Отримання інформації про значення частоти процесора в МГц у форматі uint 8-bit.
+`ESP.getSketchSize()` | Отримання інформації про розмір завантаженого в модуль скетчу у форматі uint 32-bit.
+`ESP.getFreeSketchSpace()` | Отримання інформації про наявнеий вільний простір для скетчу у формматі uint 32-bit.
+`ESP.getSketchMD5()` | MD5 хеш поточного скетчу.
+`ESP.getChipId()` | Отримання інформації про Id чіпа ESP8266 у форматі int 32bit
+`ESP.getFlashChipId()` | Отримання інформації про Id чіпа  flash пам'яті у форматі int 32bit
+`ESP.getFlashChipSize()` | Отримання інформації про розмір flash пам'яті в байтах, так, як його визначає SDK (може бути менше реального розміру).
+`ESP.getFlashChipRealSize()` | Отримання інформації про дійсний розмір чіпа flash пам'яті в байтах на основі flash chip ID.
+`ESP.getFlashChipSpeed(void)` | Отримання інформації про  частоту флеш пам'яті, в Герцах.
+`ESP.getCycleCount()` | Отримання інформації про  кількість циклів CPU з моменту старту у форматі unsigned 32-bit. Функція може бути корисна для формування точних затримок.
+`ESP.getVcc()` |  Отримання інформації про значення напруги живлення (потребує додаткового налаштування під час ініціалізації мікроконтролера)
+
+> Для роботи функції `ESP.getVcc()` ESP має переналаштувати АЦП під час запуску. Додайте наступний рядок у верхній частині скетча, щоб скористатися цією функцією:
+>``` c
+>ADC_MODE(ADC_VCC);
+>```
+>
+>Пін A0 (АЦП) не повинен бути задіяний периферією в цьому режимі.
+Зверніть увагу, що по замовчанню АЦП налаштовується для зчитування напруги за допомогою `analogRead(A0)` і функція `ESP.getVCC()` недоступна.
+
+
+Приклад:
+
+```c
+void setup() {
+
+}
+
+void loop() {
+
+}
+```
 
 
 Installation

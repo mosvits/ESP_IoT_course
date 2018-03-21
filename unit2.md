@@ -9,12 +9,11 @@
       * [Послідовність налаштування відладки](#Послідовність-налаштування-відладки)
       * [Приклад налаштування власних повідомлень відладчика](#Приклад-налаштування-власних-повідомлень-відладчика)
       * [Дамп стеку](#Дамп-стеку)
-   * [Робота з бібліотеками `ESP8266`](#Робота-з-бібліотеками-esp8266)
-      * [Функції формування часових затримок та подій](#Функції-формування-часових-затримок-та-подій)
-      * [Бібліотека "Ticker". Формування періодичних подій за перериваннями від таймера](#Бібліотека-ticker-Формування-періодичних-подій-за-перериваннями-від-таймера)
-      * [Спеціальні команди - "APIs" для ESP](#Спеціальні-команди-apis-для-esp)
+   * [Робота ESP8266 з Wi-Fi мережами](Робота-esp8266-з-wi-fi-мережами) 
+      * [Налаштування Wi-Fi точки доступу](#Налаштування-wi-fi-точки-доступу)
+      * [Налаштування WEB сервера на ESP8266](#Налаштування-web-сервера-на-esp8266)  
       * [SSDP автовідповідач (ESP8266SSDP)](#SSDP-автовідповідач-(ESP8266SSDP))
-   * [Створення `Wi-Fi` точки доступу](#Створення-wi-fi-точки-доступу)   
+      * [Віддалене керування портами вводу-виводу через Wi-Fi точку доступу](Віддалене-керування-портами-вводу-виводу-через-wi-fi-точку-доступу) 
    * [Завдання](#tests)
    * [Перелік посилань](#Перелік-посилань)
 
@@ -88,11 +87,12 @@ void loop() {
 ```
 
 ### Дамп стеку
-<details><summary>У разі якщо в ESP виникне збій, з'явиться повідомлення про виключення та буде переданий у термінал вміст стеку (дамп).
 
-Приклад дампу стеку:
-</summary><p>
-   
+У разі якщо в ESP виникне збій, з'явиться повідомлення про виключення та буде переданий у термінал вміст стеку (дамп).
+
+<details><summary>Детальніше</summary><p>
+Приклад дампу стеку:  
+ 
     Exception (0): epc1=0x402103f4 epc2=0x00000000 epc3=0x00000000 excvaddr=0x00000000 depc=0x00000000
     
     ctx: sys
@@ -146,136 +146,87 @@ It’s possible to decode the Stack to readable information. For more info see t
 
 
 
-# Робота з бібліотеками `ESP8266`
+# Робота ESP8266 з Wi-Fi мережами
+
+### Налаштування Wi-Fi точки доступу
 
 
-
-### Функції формування часових затримок
-    
-Функції `millis()` і `micros()` повертають кількість мілісекунд і мікросекунд, що минули після скидання (`RESET`).
-    
-Функція `delay(ms)` призупиняє роботу основної програми на заданий час в мілісекундах і резервує цей час для обробки завдань `Wi-Fi` та `TCP/IP`. 
-
-Функція `delayMicroseconds(us)` призначена для паузи на задане число мікросекунд.
-    
-> Пам'ятайте, що для стабільної роботи `Wi-Fi` потрібно періодично виділяти для нього час. Функції з бібліотек`Wi-Fi` і `TCP/IP`  отримують можливість обробляти свої події щоразу після проходження функції `loop()` або у разі виклику функції `delay`. 
-    
-Якщо алгоритм оброблення в `Loop()` займає час більше ніж 50 мс, то слід подбати про виклик `delay(0)` саме для підтримки нормальної роботи `Wi-Fi`. Для цього також можливо використовувати функцію `yield()`, яка є еквівалентною `delay(0)`. 
-
-> Функція  `delayMicroseconds()` не поступається часом виконання іншим завданням, тому використання її для затримки більш ніж на 20 мілісекунд не рекомендується.
-
-
-### Бібліотека "Ticker". Формування періодичних подій за перериваннями від таймера
-
-Ця бібліотека призначена для програмного переривання за таймером. 
-
-Щоб підключити переривання, для початку треба підключити бібліотеку :
-```c
-#include <Ticker.h>
-```
-
-Далі створюємо один або декілька екземплярів переривань, залежно від потреби:
-```c
-Ticker name, name2;
-```
-
-Для створених екземплярів `name` та `name2` ми можемо налаштувати переривання, що будуть формуватися з заданою періодичністю. 
-
-Налаштування періодичності можливо здійснити за допомогою функцій `attach` та `attach_ms` з параметрами для визначення періоду в секундах (`seconds`) або ()мілісекундах `miliseconds`)  та функції `callback`, що має бути викликана щоразу при виникнені переривання.
-
-``` c
-name.attach(seconds, callback);
-name2.attach_ms(miliseconds, callback2);
-```
-
-До функції `callback` також можливо додати аргументи `arg`:
-
-``` c
-name.attach(seconds, callback, arg);
-name2.attach_ms(miliseconds, callback, arg);
-```
-
-
-Отже `callback` - це ім’я функції, що буде викликатися щоразу при перериванні, а її аргумент `arg` може бути лише один. 
-
-Для налаштування формування переривання лише раз треба використовувати функції, що дуже подібні до попередніх:
-
-``` c
-name.once(seconds, callback);
-name.once(seconds, callback, arg);
-name.once_ms(miliseconds, callback);
-name.once_ms(miliseconds, callback, arg);
-```
-
-Існує ще дві не менш важливі функції  – `detach`, що відключає переривання та `active`, що повертає стан переривання у форматі `bool`.
-``` c
-name.detach();
-bool check = name.active();
-```
-
-
-> Також існує бібліотека [TickerScheduler](https://github.com/Toshik/TickerScheduler), що базується на `Ticker` і дозволяє працювати з `Task` та допомагає уникнути проблем з сторожовим таймером `WDT`. 
-
-Приклад:
 
 ```c
+#include <ESP8266WiFi.h>        // Бібліотека для роботи з Wi-Fi мережами
+IPAddress apIP(192, 168, 4, 1); // IP адреса точки доступа на ESP
+
+String ssid        = "RTFnet"; // SSID для підключення до Wi-Fi мережі
+String password    = ""; // Пароль до мережі
+String ssidAP      = "ESP_IoT";   // SSID AP точки доступа
+String passwAP     = ""; // пароль точки доступа
+
 void setup() {
-    Serial.begin(115200);
+  Serial.begin(115200);
+  Serial.println("");
+  Serial.println("Start 1-WIFI");
+  //Запуск WIFI
+  WIFIinit();
 }
 
 void loop() {
+  delay(1);
+}
 
+void WIFIinit() {
+  // Спроба приєднатися до Wi-Fi мережі
+  WiFi.mode(WIFI_STA);
+  byte tries = 11; // К-ть спроб
+  WiFi.begin(ssid.c_str(), password.c_str());
+  while (--tries && WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(1000);
+  }
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    // У разі, якщо приєднатися до мережі не вдається запускаемо ESP в режимеі Access Point
+    Serial.println("");
+    Serial.println("WiFi up AP");
+    StartAPMode();
+  }
+  else {
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+  }
+}
+
+bool StartAPMode()
+{
+  WiFi.disconnect();
+  WiFi.mode(WIFI_AP);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  WiFi.softAP(ssidAP.c_str(), passwAP.c_str());
+  return true;
 }
 ```
 
-### Спеціальні команди "APIs" для ESP
+### Налаштування WEB сервера на ESP8266
 
-Деякі API специфічних можливостей ESP, пов'язані з режимом глибокого сну, RTC (точного часу) і флеш-пам'яті доступні в об'єкті – `ESP`. Так, наприклад функція `ESP.deepSleep(microseconds, mode)` переводить модуль в режим глибокого сну. Параметр mode може приймати значення: `WAKE_RF_DEFAULT`,  `WAKE_RFCAL`,  `WAKE_NO_RFCAL`,  `WAKE_RF_DISABLED`. Для виходу з режиму глибокого сну, треба з'єднати GPIO16 з RESET.
 
-`ESP.rtcUserMemoryWrite(offset, & data, sizeof (data))` та `ESP.rtcUserMemoryRead(offset, & data, sizeof (data))` дозволяють записувати дані та зчитувати їх з пам'яті RTC відповідно. Загальний розмір користувальницької пам'яті RTC складає 512 байт, тому `offset + sizeof(data)` не повинні перевищувати 512.Змінна – `data` повинна бути рівна 4-м байтам. Збережені дані можуть зберігатися між циклами глибокого сну. Однак ці дані можуть бути втрачені після скидання живлення на чіпі.
 
-Функції `ESP.wdtEnable()` , `ESP.wdtDisable()` , і `ESP.wdtFeed()` керують сторожовим таймером.
-
-Функція | Результат виконання
---- | --- 
-`ESP.reset()` | перезавантажує модуль
-`ESP.getResetReason()` | повертає String, що містить останню причину скидання в читабельному вигляді.
-`ESP.getFreeHeap()` | повертає розмір вільної пам'яті
-`ESP.getCoreVersion()`|  повертає String, що містить версію ядра.
-`ESP.getSdkVersion()` | повертає версію SDK як char.
-`ESP.getCpuFreqMHz()` | повертає частоту процесора в МГц як uint 8-bit.
-`ESP.getSketchSize()` | повертає розмір поточного скетчу як uint 32-bit.
-`ESP.getFreeSketchSpace()` | повертає вільне простір ескізу як uint 32-bit.
-`ESP.getSketchMD5()` | повертає нижній регістр String що містить MD5 поточного скетчу.
-`ESP.getChipId()` | повертає ESP8266 chip IDE, int 32bit
-`ESP.getFlashChipId()` | повертає flash chip ID, int 32bit
-`ESP.getFlashChipSize()` | повертає розмір флеш пам'яті в байтах, так, як його визначає SDK (може бути менше реального розміру).
-`ESP.getFlashChipRealSize()` | повертає дійсний розмір чіпа в байтах на основі flash chip ID.
-`ESP.getFlashChipSpeed(void)` | повертає частоту флеш пам'яті, в Герцах.
-`ESP.getCycleCount()` | повертає кількість циклів CPU з моменту старту, unsigned 32-bit. Може бути корисна для точного таймінгу дуже коротких операцій
-`ESP.getVcc()` | повертає напругу живлення модуля, але потребує додаткового налаштування перед запуском, що описано нижче
-
-Для роботи функції `ESP.getVcc()` ESP має переналаштувати АЦП під час запуску. Додайте наступний рядок у верхній частині скетча, щоб скористатися цією функцією:
-
-``` c
-ADC_MODE(ADC_VCC);
-```
-
-Пін A0 (АЦП) не повинен бути задіяний периферією в цьому режимі.
-Зверніть увагу, що по замовчанню АЦП налаштовується для зчитування напруги за допомогою `analogRead(A0)` і функція `ESP.getVCC()` недоступна.
 
 
 ### SSDP автовідповідач (ESP8266SSDP)
 
-SSDP - це ще один протокол виявлення сервісів, який підтримується на Windows із коробки. Доданий приклад для довідки.
+`SSDP` - це ще один протокол виявлення сервісів, який підтримується на Windows із коробки. 
+
+Приклад для перевірки.
 
 ``` c
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266SSDP.h>
 
-const char* ssid = "************";
-const char* password = "***********";
+const char* ssid = "************"; //вкажіть власний ssid Wi-Fi мережі
+const char* password = "***********"; //вкажіть пароль до Wi-Fi мережі
 
 ESP8266WebServer HTTP(80);
 
@@ -290,7 +241,7 @@ void setup() {
 
     Serial.printf("Starting HTTP...\n");
     HTTP.on("/index.html", HTTP_GET, [](){
-      HTTP.send(200, "text/plain", "Hello World!");
+      HTTP.send(200, "text/plain", "Hello World! You are trying make examples from Module 2  in ESP IoT Course");
     });
     HTTP.on("/description.xml", HTTP_GET, [](){
       SSDP.schema(HTTP.client());
@@ -301,14 +252,14 @@ void setup() {
     SSDP.setDeviceType("upnp:rootdevice");
     SSDP.setSchemaURL("description.xml");
     SSDP.setHTTPPort(80);
-    SSDP.setName("Philips hue clone");
+    SSDP.setName("ESP IoT Course");
     SSDP.setSerialNumber("001788102201");
     SSDP.setURL("index.html");
-    SSDP.setModelName("Philips hue bridge 2012");
-    SSDP.setModelNumber("929000226503");
-    SSDP.setModelURL("http://www.meethue.com");
-    SSDP.setManufacturer("Royal Philips Electronics");
-    SSDP.setManufacturerURL("http://www.philips.com");
+    SSDP.setModelName("IoT Pulse Sensor");
+    SSDP.setModelNumber("M518");
+    SSDP.setModelURL("http://iot.kpi.ua");
+    SSDP.setManufacturer("Radioengineering Faculty");
+    SSDP.setManufacturerURL("http://radap.kpi.ua);
     SSDP.begin();
 
     Serial.printf("Ready!\n");
@@ -324,13 +275,16 @@ void loop() {
 }
 ```
 
-![Network](Image/SSDP/Arduino_Beregening_Network.PNG)
+![Network](Image/SSDP/Networks.PNG)
 
-![Properties](Image/SSDP/Arduino_Beregening_Properties.PNG)
+![Properties](Image/SSDP/Properties.png)
 
-[//]: ## "Завдання" 
 
-# Створення Wi-Fi точки доступу
+ 
+
+
+### Віддалене керування портами вводу-виводу через Wi-Fi точку доступу
+
 
 ```c
 #include <ESP8266WiFi.h>
@@ -487,11 +441,14 @@ void loop() {
 }
 ```
 
+[//]: ## "Завдання" 
+
 Перелік посилань:	
 ---
 1. http://arduino-esp8266.readthedocs.io/en/latest/
 1. https://github.com/esp8266/Arduino
 1. https://create.arduino.cc/projecthub/luciorocha/esp8266-control-led-with-smartphone-8a59f3
+1. http://esp8266-arduinoide.ru/step1-wifi/
 
 
 
