@@ -81,15 +81,71 @@ bool check = name.active();
 
 > Також існує бібліотека [TickerScheduler](https://github.com/Toshik/TickerScheduler), що базується на `Ticker` і дозволяє працювати з `Task` та допомагає уникнути проблем з сторожовим таймером `WDT`. 
 
-Приклад:
+Приклад №1:
 
 ```c
-void setup() {
+#include <Ticker.h> // Підключення бібліотеки
 
+Ticker flipper; // Cтворення екземпляру flipper
+
+int count = 0; // Створення зміної лічби
+
+void flip()
+{
+  int state = digitalRead(D4);  // отримати поточний стан піну D4
+  digitalWrite(D4, !state);     // встановлення піна у протилежний стан
+  
+  ++count; // (Інкремент) збільшення значення лічильника на +1 
+  // коли лічильник досягає певної величини (20), LED починайте блимати, як божевільний
+  if (count == 20)
+  {
+    flipper.attach(0.1, flip); // Переналаштовуємо переривання на виклик функції flip з періодом 0.1 секунди
+  }
+  // коли лічильник досягає величини (120), припиняє блимати
+  else if (count == 120)
+  {
+    flipper.detach(); // Відключає переривання
+  }
+}
+
+void setup() {
+  pinMode(D4, OUTPUT); // Налаштування виводу D4   
+  digitalWrite(D4, LOW); 
+  
+  // flip the pin every 0.3s
+  flipper.attach(0.3, flip); // Підключаємо переривання на виклик функції flip з періодом 0.3 секунди
 }
 
 void loop() {
+  // В основному циклі нічого не робимо
+}
+```
 
+Приклад №2:
+
+```c
+#include <Ticker.h> // Підключення бібліотеки
+
+Ticker tickerSetHigh; // Створення екземпляру tickerSetHigh
+Ticker tickerSetLow; // Створення екземпляру tickerSetLow
+
+void setPin(int state) {
+  digitalWrite(D4, state); // встановлення піна у стан - state
+}
+
+void setup() {
+  pinMode(D4, OUTPUT); // Налаштування виводу D4  
+  digitalWrite(D4, LOW);
+  
+  // кожні 25 мс, викликає setPin(0)
+  tickerSetLow.attach_ms(25, setPin, 0);
+  
+  // кожні 26 мс, викликає setPin(1)
+  tickerSetHigh.attach_ms(26, setPin, 1);
+}
+
+void loop() {
+  // В основному циклі нічого не робимо
 }
 ```
 

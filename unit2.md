@@ -291,34 +291,38 @@ void handle_Restart() {
 Приклад для перевірки.
 
 ``` c
+// Підключення бібліотек для роботи з WiFi та сервісів
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266SSDP.h>
 
-const char* ssid = "************"; //вкажіть власний ssid Wi-Fi мережі
-const char* password = "***********"; //вкажіть пароль до Wi-Fi мережі
+const char* ssid = "************"; // Тут треба вказати назву SSID точки WiFi
+const char* password = "***********";  // Тут треба вказати пароль точки WiFi
 
 ESP8266WebServer HTTP(80);
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println();
-  Serial.println("Starting WiFi...");
+  Serial.begin(115200); // Налаштовуємо послідовний порт для зв'язку з комп'ютером
+  Serial.println(); // Перехід на новий рядок
+  Serial.println("Starting WiFi..."); // Вивід повідомлення у послідовний порт
 
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA); // Налаштування контролера у режим станції WiFi
   WiFi.begin(ssid, password);
   if(WiFi.waitForConnectResult() == WL_CONNECTED){
 
     Serial.printf("Starting HTTP...\n");
+    // Додавання інструкцій для сторінки 192.168.1.22/index.html
     HTTP.on("/index.html", HTTP_GET, [](){
-      HTTP.send(200, "text/plain", "Hello World! You are trying make examples from Module 2  in ESP IoT Course");
-    });
+      HTTP.send(200, "text/plain", "Hello World!");
+    }); 
+    // Додавання інструкцій для сторінки 192.168.1.22/description.xml
     HTTP.on("/description.xml", HTTP_GET, [](){
       SSDP.schema(HTTP.client());
     });
     HTTP.begin();
 
     Serial.printf("Starting SSDP...\n");
+    // Налаштування сервісу SSDP, щоб ПК розпізнавав цей пристрій за наступними даними
     SSDP.setDeviceType("upnp:rootdevice");
     SSDP.setSchemaURL("description.xml");
     SSDP.setHTTPPort(80);
@@ -335,17 +339,18 @@ void setup() {
     Serial.printf("Ready!\n");
   } else {
     Serial.printf("WiFi Failed\n");
-    while(1) delay(100);
+    while(1) delay(100); // Вічна затримка у випадку невдачі
   }
 }
 
 void loop() {
-  HTTP.handleClient();
-  delay(1);
+  HTTP.handleClient(); // Виділення часу на опрацювання клієнта
+  yield(); // Спеціально виділена затримка для роботи WiFi
 }
 ```
+А ось як тепер, завдяки налаштуваню SSDP, ПК розпізнає наш прстрій (на скріншотах інакші налаштування SSDP, аніж в нашому прикладі):
 
-![Network](Image/SSDP/Networks.PNG)
+![Network](Image/SSDP/Networks.png)
 
 ![Properties](Image/SSDP/Properties.png)
 
@@ -354,31 +359,32 @@ void loop() {
 ***
 
 ```c
+// Підключення бібліотек для роботи з WiFi та сервісів
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h> 
 #include <ESP8266WebServer.h>
 
-/* Set these to your desired credentials. */
+/* Встановіть власні облікові дані */
 const char *ssid = "Microcloud_2";
 const char *password = "654321";
 
-ESP8266WebServer server(80);
+ESP8266WebServer server(80); // Створюємо екземпляр Web сервера для порту 80 (стандартний порт для http запитів)
 
-const int led = 2;  //GPIO2
+const int led = 2;  //GPIO2 (Подивіться який це пін орієнтуючись на розпіновку мікроконтролераз 1-го модулю)
 
-/* Just a little test message.  Go to http://192.168.4.1 in a web browser
- * connected to this access point to see it.
+/* Перейдіть до http://192.168.4.1 у веб-браузері *, підключеному до цієї
+ * точки доступу, щоб побачити ваш пристрій.
  */
 void handleRoot() {
 
   int size=1000;
-  char temp[size];
+  char temp[size]; // Створення масиву даних типу int, розміром 1000 елементів
   
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
+  int sec = millis() / 1000; // Запис поточного часу у секундах (час з моменту запуску мікроконтролера)
+  int min = sec / 60; // Запис поточного часу у хвилинах
+  int hr = min / 60; // Запис поточного часу у годинах
 
-  snprintf ( temp, size,
+  snprintf ( temp, size, // Запис тексту нижче у масив temp
 
 "<html>\
   <head>\    
@@ -399,47 +405,47 @@ void handleRoot() {
 
     hr, min % 60, sec % 60
   );
-  server.send ( 200, "text/html", temp );  
+  server.send ( 200, "text/html", temp ); // Надсилання HTML сторінки поточному клієнту з кодом операції 200 (це стосується Web протоколів)
   
 }
 
 void setup() {
-	delay(1000);
-	Serial.begin(9600);
-	Serial.println();
-	Serial.print("Configuring access point...");
+  delay(1000);
+  Serial.begin(9600); // Налаштовуємо послідовний порт для зв'язку з комп'ютером
+  Serial.println();
+  Serial.print("Configuring access point...");
 
-	/* You can remove the password parameter if you want the AP to be open. */
-	WiFi.softAP(ssid, password);
+  /* Ви можете видалити параметр пароля, якщо ви хочете відкриту AP. */
+  WiFi.softAP(ssid, password); // Налаштування власної точки доступу
 
-	IPAddress myIP = WiFi.softAPIP();
-	Serial.print("AP IP address: ");
-	Serial.println(myIP);
+  IPAddress myIP = WiFi.softAPIP(); // Дізнаємося IP-адресу вашої точки
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
 
-  pinMode(led, OUTPUT);
-  digitalWrite ( led, HIGH );
+  pinMode(led, OUTPUT); // Налаштування піна у режим виходу
+  digitalWrite ( led, HIGH ); // Встановлення піна у стан - HIGH
 
-  //URLs available to query
-	server.on("/", handleRoot);
-  server.on ( "/on", turnON );    
-  server.on ( "/off", turnOFF );
-	server.begin();
-	Serial.println("HTTP server started");
+  //URL-адреси, доступні для запиту
+  server.on("/", handleRoot);     // за запитом: ВАШ_IP_адрес/    виконуватиметься оброблення запиту функцією handleRoot
+  server.on ( "/on", turnON );    // за запитом: ВАШ_IP_адрес/on  виконуватиметься оброблення запиту функцією turnON
+  server.on ( "/off", turnOFF );  // за запитом: ВАШ_IP_адрес/off виконуватиметься оброблення запиту функцією turnOFF
+  server.begin();
+  Serial.println("HTTP server started");
   
 }
 
 void turnON(){
 
-  digitalWrite ( led, HIGH );
+  digitalWrite ( led, HIGH ); // Встановлення піна у стан - HIGH
 
   int size=1000;
-  char temp[size];
+  char temp[size]; // Створення масиву даних типу int, розміром 1000 елементів
 
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
+  int sec = millis() / 1000; // Запис поточного часу у секундах (час з моменту запуску мікроконтролера)
+  int min = sec / 60; // Запис поточного часу у хвилинах
+  int hr = min / 60; // Запис поточного часу у годинах
 
-  snprintf ( temp, size,
+  snprintf ( temp, size, // Запис тексту нижче у масив temp
 
 "<html>\
   <head>\    
@@ -462,22 +468,22 @@ void turnON(){
     hr, min % 60, sec % 60
   );
 
-  server.send ( 200, "text/html", temp);
+  server.send ( 200, "text/html", temp); // Надсилання HTML сторінки поточному клієнту з кодом операції 200 (це стосується Web протоколів)
   
 }
 
 void turnOFF(){
 
-  digitalWrite ( led, LOW );
+  digitalWrite ( led, LOW ); // Встановлення піна у стан - LOW
 
   int size=1000;
-  char temp[size];
+  char temp[size]; // Створення масиву даних типу int, розміром 1000 елементів
 
-  int sec = millis() / 1000;
-  int min = sec / 60;
-  int hr = min / 60;
+  int sec = millis() / 1000; // Запис поточного часу у секундах (час з моменту запуску мікроконтролера)
+  int min = sec / 60; // Запис поточного часу у хвилинах
+  int hr = min / 60; // Запис поточного часу у годинах
 
-  snprintf ( temp, size,
+  snprintf ( temp, size, // Запис тексту нижче у масив temp
 
 "<html>\
   <head>\    
@@ -499,12 +505,12 @@ void turnOFF(){
     hr, min % 60, sec % 60
   );
 
-  server.send ( 200, "text/html", temp);
+  server.send ( 200, "text/html", temp); // Надсилання HTML сторінки поточному клієнту з кодом операції 200 (це стосується Web протоколів)
   
 }
 
 void loop() {
-	server.handleClient();
+  server.handleClient(); // Виділення часу на опрацювання клієнта
 }
 ```
 
