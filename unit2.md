@@ -9,11 +9,11 @@
       * [Послідовність налаштування відладки](#Послідовність-налаштування-відладки)
       * [Приклад налаштування власних повідомлень відладчика](#Приклад-налаштування-власних-повідомлень-відладчика)
       * [Дамп стеку](#Дамп-стеку)
-   * [Робота ESP8266 з Wi-Fi мережами](Робота-esp8266-з-wi-fi-мережами) 
+   * [Робота ESP8266 з Wi-Fi мережами](#Робота-esp8266-з-wi-fi-мережами) 
       * [Налаштування Wi-Fi точки доступу](#Налаштування-wi-fi-точки-доступу)
       * [Налаштування WEB сервера на ESP8266](#Налаштування-web-сервера-на-esp8266)  
       * [SSDP автовідповідач (ESP8266SSDP)](#SSDP-автовідповідач-(ESP8266SSDP))
-      * [Віддалене керування портами вводу-виводу через Wi-Fi точку доступу](Віддалене-керування-портами-вводу-виводу-через-wi-fi-точку-доступу) 
+   * [Віддалене керування портами вводу-виводу через Wi-Fi точку доступу](#Віддалене-керування-портами-вводу-виводу-через-wi-fi-точку-доступу) 
    * [Завдання](#tests)
    * [Перелік посилань](#Перелік-посилань)
 
@@ -201,8 +201,10 @@ void WIFIinit() {
 bool StartAPMode()
 {
   WiFi.disconnect();
-  WiFi.mode(WIFI_AP);
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  WiFi.mode(WIFI_AP); // Змінюємо режим на точку доступа
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));// Задаємо налаштування мережі
+  // Вмикаємо WI-FI модуль в режимі точки доступу з SSID та паролем,
+  // що збережені у змінних ssidAP та passwAP
   WiFi.softAP(ssidAP.c_str(), passwAP.c_str());
   return true;
 }
@@ -210,11 +212,79 @@ bool StartAPMode()
 
 ### Налаштування WEB сервера на ESP8266
 
+Функції `WIFIinit()` та `StartAPMode()` залишаються незмінними з попереднього прикладу, звідки їх можна скопіювати. 
 
+```c 
+#include <ESP8266WiFi.h>        // Бібліотека для роботи з Wi-Fi мережами
+#include <ESP8266WebServer.h>   // Бібліотека для налаштування сервера 
+
+IPAddress apIP(192, 168, 4, 1); // IP адреса точки доступа на ESP
+
+// Web інтерфейс для пристрою
+ESP8266WebServer HTTP(80);
+
+String ssid        = "RTFnet"; // SSID для підключення до Wi-Fi мережі
+String password    = ""; // Пароль до мережі
+String ssidAP      = "ESP_IoT";   // SSID AP точки доступа
+String passwAP     = ""; // пароль точки доступа
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("");
+  Serial.println("Start 1-WIFI");
+  //Запускаємо WI-FI
+  WIFIinit();
+  //Налаштовуємо і запускаємо HTTP інтерфейс
+  Serial.println("Start 2-WebServer");
+  HTTP_init();
+}
+
+void loop() {
+  HTTP.handleClient(); // Обробка завдань http протоколу 
+  delay(1);
+}
+
+void HTTP_init(void) {
+  HTTP.onNotFound(handleNotFound); // Повідомлення у разі якщо сторінки не існує. Наприклад http://192.168.88.ххх/rtf?device=ok&led1=1&led2=on
+  HTTP.on("/", handleRoot); // Головна сторінка http://192.168.88.ххх/
+  HTTP.on("/restart", handle_Restart); // Перезавантаження модуля за запитом виду http://192.168.88.ххх/restart?device=ok
+  // Запускаємо HTTP сервер
+  HTTP.begin();
+}
+
+// Відповідь сервера у разі якщо сторінка не знайдена
+void handleNotFound(){
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += HTTP.uri();
+  message += "\nMethod: ";
+  message += (HTTP.method() == HTTP_GET)?"GET":"POST";
+  message += "\nArguments: ";
+  message += HTTP.args();
+  message += "\n";
+  for (uint8_t i=0; i<HTTP.args(); i++){
+    message += " " + HTTP.argName(i) + ": " + HTTP.arg(i) + "\n";
+  }
+  HTTP.send(404, "text/plain", message);
+}
+
+// Відповідь сервера у разі звернення до корньової сторінки
+void handleRoot() {
+  HTTP.send(200, "text/plain", "hello from esp8266!");
+}
+
+// Функція для перезавантаження модуля по запипу вида http://192.168.88.ххх/restart?device=ok
+void handle_Restart() {
+  String restart = HTTP.arg("device");
+  if (restart == "ok") ESP.restart();
+  HTTP.send(200, "text/plain", "OK");
+}
+```
 
 
 
 ### SSDP автовідповідач (ESP8266SSDP)
+
 
 `SSDP` - це ще один протокол виявлення сервісів, який підтримується на Windows із коробки. 
 
@@ -280,11 +350,8 @@ void loop() {
 ![Properties](Image/SSDP/Properties.png)
 
 
- 
-
-
-### Віддалене керування портами вводу-виводу через Wi-Fi точку доступу
-
+# Віддалене керування портами вводу-виводу через Wi-Fi точку доступу
+***
 
 ```c
 #include <ESP8266WiFi.h>
