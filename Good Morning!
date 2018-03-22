@@ -1,0 +1,297 @@
+[33mcommit 3db9ed090dd4931c0b64b9f03fc067d6c84159bd[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;32mTemporary[m[33m)[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Thu Mar 22 03:55:48 2018 +0200
+
+    Good Morning!
+
+[33mcommit 17c49a31798586d2d207472a173ef4b971b7ff6a[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Wed Mar 21 11:10:31 2018 +0200
+
+    Ticker
+
+[33mcommit 14573f6e6f141f1f4a36369ac6b573f38904b208[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Wed Mar 21 00:53:03 2018 +0200
+
+    example
+
+[33mcommit c799d437009f740ba5583c9dc1fa60a371dcdf30[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Thu Mar 15 03:07:39 2018 +0200
+
+    Оновлення до версії 2.4.1
+
+[33mcommit 0797105d97d9958238c1ff86026568341226df21[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Tue Mar 6 23:01:20 2018 +0200
+
+    Додані найпростіші схеми
+
+[33mcommit a4c6069360b582c6622b7a8aa34c99cea61aa301[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 21:21:43 2018 +0200
+
+    Правки
+
+[33mcommit 78bcebd68841842e824786a01e559fc42940161c[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 21:14:40 2018 +0200
+
+    Правки
+
+[33mcommit 5229401a8ce5d31fc858b4bd510eadab30f50647[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 21:09:01 2018 +0200
+
+    Черновий варіант Модуля 2
+
+[33mcommit 3a962595cbd5d8d6bf263014fa0c0c0b838520e9[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 18:06:38 2018 +0200
+
+    Виправлення
+
+[33mcommit 46a687aad51d9d1ad258e882b74e9a1a4c987f5f[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 18:02:12 2018 +0200
+
+    Виправлення посилання
+
+[33mcommit a73385b3829cca4478cea9b8bf5e0b2ab3c27f51[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 17:53:52 2018 +0200
+
+    Виправлення
+
+[33mcommit 32c8649f5596825f8f0fb15d30cd9cff56a69feb[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Mar 3 17:46:17 2018 +0200
+
+    Оновлення Модуля 1
+
+[33mcommit d4e1ed1d96bfa1e87c6d84f14ac088d4c7e35201[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Thu Mar 1 00:23:37 2018 +0200
+
+    правки
+
+[33mcommit c91c63d0ea54a75b2e30cfeadc061c6c32690faa[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Wed Feb 28 18:38:05 2018 +0200
+
+    Правки
+
+[33mcommit d0e478d5587f91f65308a4017c7b25ed57dca99b[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Wed Feb 28 00:53:20 2018 +0200
+
+    Правки
+
+[33mcommit 952501dc22d960d6b08d86c123cc2ec439f3a4c8[m
+Merge: e4784a6 83e5fa5
+Author: kind-king <kind-king@ex.ua>
+Date:   Mon Feb 26 15:45:11 2018 +0200
+
+    Merge branch 'master' of https://github.com/mosvits/ESP_IoT_course
+
+[33mcommit e4784a605395a8f7e7062b0cefd320a5c825302b[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Mon Feb 26 15:45:07 2018 +0200
+
+    Interrupt
+
+[33mcommit 83e5fa51cb8978c1940635990f2ffbc9ab80955b[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Mon Feb 26 11:59:46 2018 +0200
+
+    Приклад до послідовного  порта
+
+[33mcommit f316ead6c3fe746017b9c542332d46150a2cedac[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Mon Feb 26 00:14:46 2018 +0200
+
+    Debuging
+
+[33mcommit 188e56696e5618c2ea31eeacc4c3d074dee1de5d[m
+Merge: f49a26f 2edcacc
+Author: kind-king <kind-king@ex.ua>
+Date:   Sun Feb 25 20:08:02 2018 +0200
+
+    Merge branch 'master' of https://github.com/mosvits/ESP_IoT_course
+
+[33mcommit f49a26fccd892531625fc02d41551032a3e29bf3[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sun Feb 25 20:07:59 2018 +0200
+
+    Виправлення
+
+[33mcommit 2edcacca9b56feac79bf87ba48f843771b3e2cd4[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Sun Feb 25 12:42:27 2018 +0200
+
+    Доопрпацювання уроку 1
+
+[33mcommit c8fc2ac7e5e4a0221bdde09c0fce8c9da0900b99[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Sun Feb 25 01:34:42 2018 +0200
+
+    Посилання 2
+
+[33mcommit d701420f620e042b3e4e57da0553854784e31103[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Sun Feb 25 01:23:30 2018 +0200
+
+    посилання
+
+[33mcommit 6dc9c146a0975816a591979c465f81dbfc0ceb62[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Sun Feb 25 01:15:20 2018 +0200
+
+    Скелетон першого уроку
+
+[33mcommit 991327497c5b5b300719a7551e24f8858b2dae20[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Sat Feb 24 21:35:30 2018 +0200
+
+    Маркдаун синтаксис
+
+[33mcommit a4ec8fa5b2b3a1be920b4ab12e5c73d374d0a84c[m
+Merge: 6ae531e ab6dd69
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Feb 24 18:30:38 2018 +0200
+
+    Merge branch 'master' of https://github.com/mosvits/ESP_IoT_course
+
+[33mcommit 6ae531e6e640192561b6df7eec21ffd5933b7a36[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Feb 24 18:30:36 2018 +0200
+
+    Підготовка 1-го уроку
+
+[33mcommit ab6dd6950c0bfee932f5244566e895790f556d03[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Sat Feb 24 16:02:29 2018 +0200
+
+    Стуктура курсу
+
+[33mcommit 3bb32cdd3aefce169711c40b4bf6d8b051832a35[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Feb 10 23:29:01 2018 +0200
+
+    reStructuredText
+
+[33mcommit 95ab311df3543ab86d93202f1f2426e4349a7035[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Feb 10 15:54:27 2018 +0200
+
+    Переіменування
+
+[33mcommit 23143a5006a4c020f1bc92cd03e78f531511ee0e[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sat Feb 10 15:46:38 2018 +0200
+
+    Виправлення, та реструктура
+    
+    UNIT_7  було розбито на 2 частини і перенесено на самий початок курсу.
+    Тепер вони називаються UNIT_1_Debugging
+    UNIT_1_Boards
+    Також UNIT_8 було вирішено викинути та зробити додатковим матеріалом (поки перекладатися не буде).
+    Перекладу очікують:
+    UNIT_5
+    UNIT_6
+
+[33mcommit 2f62082ef02f81dd1554731d6a816405d5d8b813[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Thu Feb 8 01:50:47 2018 +0200
+
+    Майже все перекладено
+    
+    Залигилося не перекладеним:
+    UNIT_6
+    UNIT_8, але є сумніви щодо актуальності, тому поки не буде перекладатися.
+
+[33mcommit efc9b6c931948f3e4c2dc808bf55a0f2c6860309[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Wed Feb 7 03:05:57 2018 +0200
+
+    WiFi майже перекладений
+    
+    Було перекладено:
+    UNIT_4_Client
+    UNIT_4_Client Secure
+    UNIT_4_Server
+    Та частково UNIT_4_UDP
+
+[33mcommit dbf6ab6a7b6fe95e3fe1a299e437984c1d08a77a[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Mon Feb 5 02:16:34 2018 +0200
+
+    Переклад продовжується
+    
+    Наступні документи потребують перекладу та можливого перекомпанування:
+    UNIT_4_Client Secure
+    UNIT_4_Client
+    UNIT_4_Generic
+    UNIT_4_Server
+    UNIT_4_Station
+    UNIT_4_UDP
+    UNIT_5
+    UNIT_6
+    UNIT_7
+
+[33mcommit 56b0c963b00a8b16c298aee75bee93980a223129[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Sun Feb 4 05:21:02 2018 +0200
+
+    Нові матеріали
+    
+    Нова прошивка 2.4.0 вийшла дуже вчасно...
+
+[33mcommit 7a2e7a303f5d97022518b1b06296c9d0bd33bdc4[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Fri Feb 2 02:27:16 2018 +0200
+
+    Два уроки додані
+    
+    Урок WiFi потребує серйозного доопрацювання
+
+[33mcommit 9621d15ceb1a335ab8941a114c9e47d6258540a4[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Thu Jan 25 19:32:23 2018 +0200
+
+    Unit1 завершений
+    
+    Потребує редагування помилок та покращення подачі інформації...
+
+[33mcommit ab5d95438ab2a9a18007f10524e150d0efef4e12[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Thu Jan 25 03:31:06 2018 +0200
+
+    Приклади
+
+[33mcommit 21ab410dbdb03abc17faaeef8f3cef54947914fc[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Mon Jan 22 20:02:19 2018 +0200
+
+    image
+
+[33mcommit cd1fdebebf84e19f64a01e035bddc0b74b0db845[m
+Author: mvsros <mvs@ros.kpi.ua>
+Date:   Mon Jan 22 19:57:30 2018 +0200
+
+    Init
+
+[33mcommit 0b39fdd3aaeb49af63fd2d34e96cea05d6563474[m
+Author: kind-king <kind-king@ex.ua>
+Date:   Mon Jan 22 19:35:59 2018 +0200
+
+    Старт
+    
+    Збір матеріалів
+
+[33mcommit a73dd7ef709ee2920fc43de6c9713bb6e5a9e29f[m
+Author: Vitaliy Mosiychuk <mosvits@users.noreply.github.com>
+Date:   Mon Jan 22 19:25:40 2018 +0200
+
+    Initial commit
