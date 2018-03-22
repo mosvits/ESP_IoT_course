@@ -21,7 +21,7 @@
 > ![Win+R](CH340/Win+R.png)
 > ![Run](CH340/Device_manager.png)
 
-Для початку завантажимо драйвер [CH340](CH340/CH34x_Install_Windows_v3_4.zip) для Windows.
+Для початку завантажимо драйвер [CH340](https://sparks.gogo.co.nz/assets/_site_/downloads/CH34x_Install_Windows_v3_4.zip) для Windows.
 Та встановимо його:
 
 ![Встановлення](CH340/CH341SER.png)
