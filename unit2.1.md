@@ -299,7 +299,11 @@ void handle_Restart() {
 const char* ssid = "************"; // Тут треба вказати назву SSID точки WiFi
 const char* password = "***********";  // Тут треба вказати пароль точки WiFi
 
-ESP8266WebServer HTTP(80);
+IPAddress staticIP(192,168,1,22); // Введіть тут IP-адресу, яку ви хочете призначити станції ESP
+IPAddress gateway(192,168,1,9); // Введіть тут IP-адресу шлюзу (маршрутизатора) для доступу до зовнішніх мереж
+IPAddress subnet(255,255,255,0); // Введіть тут Маску, яка визначає діапазон IP-адрес локальної мережі
+
+ESP8266WebServer HTTP(80); // Створюємо екземпляр Web сервера для порту 80 (стандартний порт для http запитів)
 
 void setup() {
   Serial.begin(115200); // Налаштовуємо послідовний порт для зв'язку з комп'ютером
@@ -308,7 +312,11 @@ void setup() {
 
   WiFi.mode(WIFI_STA); // Налаштування контролера у режим станції WiFi
   WiFi.begin(ssid, password);
-  if(WiFi.waitForConnectResult() == WL_CONNECTED){
+  bool status = WiFi.config(staticIP, gateway, subnet); // Налаштування даних станції вручну
+  if (status) Serial.println("ALL OK!"); // Власноруч написана перевірка успішного налаштування станції
+  else Serial.println("BAD IP!"); // Ви також можете переглянути більш детальну інформацію про налаштування використовуючи Dubugging
+
+  if(WiFi.waitForConnectResult() == WL_CONNECTED){ // Перевірка успішного підключення
 
     Serial.printf("Starting HTTP...\n");
     // Додавання інструкцій для сторінки 192.168.1.22/index.html
