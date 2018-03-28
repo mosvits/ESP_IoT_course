@@ -1,5 +1,5 @@
 
-Table of contents
+Урок 3. Стандартні бібліотеки та API для ESP8266
 =================
 
 <!--ts-->
@@ -149,7 +149,7 @@ void loop() {
 }
 ```
 
-### Спеціальні функції та команди для ESP8266
+## Спеціальні функції та команди для ESP8266
 
 Спеціальні функції ESP пов'язані з режимом глибокого сну, RTC (точного часу) і флеш-пам'яті. Дані функції доступні в об'єкті – `ESP`. 
 
@@ -163,9 +163,162 @@ void loop() {
 
 Функції `ESP.rtcUserMemoryWrite(offset, & data, sizeof (data))` та `ESP.rtcUserMemoryRead(offset, & data, sizeof (data))` дозволяють записувати та зчитувати дані з пам'яті `RTC`. Загальний розмір пам'яті `RTC` складає 512 байт, тому `offset + sizeof(data)` не повинні перевищувати 512. Змінна – `data` повинна бути рівна 4-м байтам. Збережені дані можуть зберігатися між циклами глибокого сну. 
 
-> Інформація в `RTC` втачається після вимикання живлення.
+> Інформація в `RTC` втрачається після вимикання живлення.
+
+
+<details><summary>Приклад роботи з пам'ятю RTC</summary><p>
+
+
+```c
+// Структурні дані з максимальним розміром 512 байтів можуть зберігатися в 
+// rtcDataory користувача RTC за допомогою інтерфейсів ESP-specific.
+// Збережені дані можна зберігати між циклами глибокого сну.
+// Однак ці дані можуть бути втрачені після скидання живлення на ESP8266.
+//
+// Цей приклад використовує режим глибокого сну, тому перед тим, як запустити його, 
+// підключіть контакти GPIO16 та RST.
+
+
+// Функція CRC використовується для забезпечення достовірності даних
+uint32_t calculateCRC32(const uint8_t *data, size_t length);
+// Така об1ява функції без її тіла дозволяє викликати її до її об'яви, 
+// що виконана нижче (така об'ява називається прототипом функції)
+
+// допоміжна функція, щоб надрукувати вміст пам'яті у шістнадцятковому вигляді
+void printMemory();
+
+// Структура, яка буде зберігатися в пам'яті RTC.
+// Перше поле crc32, що розраховується на основі решти вмісту структури.
+// Будь-які поля можуть йти після CRC32.
+// Ми використовуємо байтовий масив як приклад.
+struct {
+  uint32_t crc32;
+  byte data[508];
+} rtcData;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
+  delay(1000);
+
+  // Зчитування структури з пам'яті RTC
+  if (ESP.rtcUserMemoryRead(0, (uint32_t*) &rtcData, sizeof(rtcData))) {
+    Serial.println("Read: ");
+    printMemory();
+    Serial.println();
+    // обчислимо значення crc32 на основі зчитаних даних
+    uint32_t crcOfData = calculateCRC32( (uint8_t*) &rtcData.data[0], sizeof(rtcData.data) );
+    Serial.print("CRC32 of data: ");
+    Serial.println(crcOfData, HEX);
+    Serial.print("CRC32 read from RTC: ");
+    Serial.println(rtcData.crc32, HEX);
+    if (crcOfData != rtcData.crc32) { 
+      Serial.println("CRC32 in RTC memory doesn't match CRC32 of data. Data is probably invalid!");
+    }
+    else {
+      Serial.println("CRC32 check ok, data is probably valid.");
+    }
+  }
+
+  // Генерування нових даних для структури
+  for (size_t i = 0; i < sizeof(rtcData.data); i++) {
+    rtcData.data[i] = random(0, 128); // випадковим чином
+  }
+  // Оновлення CRC32 для нових даних
+  rtcData.crc32 = calculateCRC32( (uint8_t*) &rtcData.data[0], sizeof(rtcData.data) );
+  // Запис нашої структури в пам'ять RTC
+  if (ESP.rtcUserMemoryWrite(0, (uint32_t*) &rtcData, sizeof(rtcData))) {
+    Serial.println("Write: ");
+    printMemory();
+    Serial.println();
+  }
+
+  Serial.println("Going into deep sleep for 5 seconds");
+  ESP.deepSleep(5e6); // Лягамо поспати на 5 секунд для економії енергії
+}
+
+void loop() {
+  // В основному циклі нічого не робимо
+}
+
+// Обережно математика для програмістів ;) 
+uint32_t calculateCRC32(const uint8_t *data, size_t length)
+{
+  uint32_t crc = 0xffffffff; // заповнення одиницями всіх 32-х бітів
+  while (length--) {
+    uint8_t c = *data++; // тут хитрий обхід масиву даних
+    for (uint32_t i = 0x80; i > 0; i >>= 1) { // (i >>= 1) - зсув на 1 біт в право з присвоєням кінечного результату, що еквівалентно i = i / 2
+      bool bit = crc & 0x80000000; // виділення першого біту за допомогою маски 0x80000000 та побітового перемноження
+      if (c & i) { // аналогічна операція, лише роль маски грає змінна "i"
+        bit = !bit; // інвертувати значення
+      }
+      crc <<= 1; // побітовий зсув на 1 вліво з присвоєням кінечного результату, що еквівалентно crc = crc * 2
+      if (bit) { // якщо прапорець bit піднятий (має значення true = 1)
+        crc ^= 0x04c11db7; // інвертувати значення вказані в масці (відкрийте калькулятор в режимі прорамування)
+      }
+    }
+  }
+  return crc; // повернення образованої величини
+}
+
+// друкує всі дані rtcData, у тому числі провідний CRC32 заголовок
+void printMemory() {
+  char buf[3]; // створення буферу пам'яті на 3 символи (байти)
+  uint8_t *ptr = (uint8_t *)&rtcData; // хитре перетворення типів даних
+  for (size_t i = 0; i < sizeof(rtcData); i++) {
+    sprintf(buf, "%02X", ptr[i]); // запис шіснадцяткового числа як 3 сивола в буфер, останій символ є символ завершення рядку '\0'
+    Serial.print(buf); // вивід на екран вмісту буфера
+    if ((i + 1) % 32 == 0) { // коли остача від (i+1) при ділені на 32 рівна 0, тобто коли заначення кратне 32
+      Serial.println(); // перейти на новий рядок
+    }
+    else { // 
+      Serial.print(" "); // відступити
+    }
+  }
+  Serial.println();
+}
+```
+
+</p></details>
+
+### Сторожовий таймер WDT
+
+Автоматизовані системи, що не контролюються постійно людиною, також схильні до помилок, зависань та інших збоїв (зокрема апаратних). Тому використання в них сторожових таймерів збільшують їхню стабільність роботи, завдяки встановлення часового обмеження на реакцію оновлення свого статусу. Якщо оновлення статусу не відбулося, то відбувається примусовий перезапуск системи.
 
 Функції `ESP.wdtEnable()`, `ESP.wdtDisable()` і `ESP.wdtFeed()` керують сторожовим таймером.
+
+Приклад:
+
+```c
+void setup() {
+
+  ➥ якийсь код програми
+
+  // По замовчуванню WDT вже ввімкнений, 
+  // тому викликати wdtEnable() без налаштувань не має сенсу
+  ESP.wdtEnable(6000); // Встановлення періоду скидання програми на 6 секунд
+}
+
+void loop() {
+  
+  ➥ якийсь код програми
+
+  ESP.wdtFeed(); // Скидаємо таймер в 0, щоб наша програма не скинулася
+
+  ➥ ще якийсь код програми
+
+  ESP.wdtFeed(); // Скидаємо таймер в 0, щоб наша програма не скинулася
+
+  ➥ і ще якийсь код програми
+
+  ESP.wdtDisable(); // вимкнути WDT
+  100% робочий але дуже потребуючий алгоритм
+  ESP.wdtEnable(); // увімкнути WDT
+
+  ➥ можливо щось іще
+
+}
+```
 
 Функція | Результат виконання
 --- | --- 
@@ -198,327 +351,49 @@ void loop() {
 Приклад:
 
 ```c
-void setup() {
+ADC_MODE(ADC_VCC);
 
+void setup() {
+  // налаштуйте послідовний порт
 }
 
 void loop() {
-
+  int getVcc = ESP.getVcc();
+  // виведіть результат
+  // переведіть результат в напругу і знову виведіть 
+  // (треба поділити на 1024, або своє значення отримане пілся калібровки, 
+  // і далі працювати з типом даних для дробних числ)
+  // зробіть затримку
 }
 ```
 
+<!--- КОМЕНТАР MarkDown
 
-Installation
-============
+  ADC_MODE(ADC_VCC);
 
-```bash
-$ wget https://raw.githubusercontent.com/ekalinin/github-markdown-toc/master/gh-md-toc
-$ chmod a+x gh-md-toc
-```
+void setup() {
+   Serial.begin(115200);
+}
 
-Usage
-=====
+void loop() {
+int vcc = ESP.getVcc();
+Serial.println(vcc);
+float vccVolt = ((float)ESP.getVcc())/1024;
+Serial.println(vccVolt);
+delay(1000);
+}
 
+КОМЕНТАР MarkDown -->
 
-STDIN
------
+Останій приклад `TestEspApi` занходиться в меню _Файл_ > _Приклади_ > _ESP8266_.
 
-Here's an example of TOC creating for markdown from STDIN:
+[//]: ## "Завдання" 
 
-```bash
-➥ cat ~/projects/Dockerfile.vim/README.md | ./gh-md-toc -
-  * [Dockerfile.vim](#dockerfilevim)
-  * [Screenshot](#screenshot)
-  * [Installation](#installation)
-        * [OR using Pathogen:](#or-using-pathogen)
-        * [OR using Vundle:](#or-using-vundle)
-  * [License](#license)
-```
-
-Local files
------------
-
-Here's an example of TOC creating for a local README.md:
-
-```bash
-➥ ./gh-md-toc ~/projects/Dockerfile.vim/README.md                                                                                                                                                Вс. марта 22 22:51:46 MSK 2015
-
-Table of Contents
-=================
-
-  * [Dockerfile.vim](#dockerfilevim)
-  * [Screenshot](#screenshot)
-  * [Installation](#installation)
-        * [OR using Pathogen:](#or-using-pathogen)
-        * [OR using Vundle:](#or-using-vundle)
-  * [License](#license)
-```
-
-Remote files
-------------
-
-And here's an example, when you have a README.md like this:
-
-  * [README.md without TOC](https://github.com/ekalinin/envirius/blob/f939d3b6882bfb6ecb28ef7b6e62862f934ba945/README.md)
-
-And you want to generate TOC for it.
-
-There is nothing easier:
-
-```bash
-➥ ./gh-md-toc https://github.com/ekalinin/envirius/blob/master/README.md
-
-Table of Contents
-=================
-
-  * [envirius](#envirius)
-    * [Idea](#idea)
-    * [Features](#features)
-  * [Installation](#installation)
-  * [Uninstallation](#uninstallation)
-  * [Available plugins](#available-plugins)
-  * [Usage](#usage)
-    * [Check available plugins](#check-available-plugins)
-    * [Check available versions for each plugin](#check-available-versions-for-each-plugin)
-    * [Create an environment](#create-an-environment)
-    * [Activate/deactivate environment](#activatedeactivate-environment)
-      * [Activating in a new shell](#activating-in-a-new-shell)
-      * [Activating in the same shell](#activating-in-the-same-shell)
-    * [Get list of environments](#get-list-of-environments)
-    * [Get current activated environment](#get-current-activated-environment)
-    * [Do something in environment without enabling it](#do-something-in-environment-without-enabling-it)
-    * [Get help](#get-help)
-    * [Get help for a command](#get-help-for-a-command)
-  * [How to add a plugin?](#how-to-add-a-plugin)
-    * [Mandatory elements](#mandatory-elements)
-      * [plug_list_versions](#plug_list_versions)
-      * [plug_url_for_download](#plug_url_for_download)
-      * [plug_build](#plug_build)
-    * [Optional elements](#optional-elements)
-      * [Variables](#variables)
-      * [Functions](#functions)
-    * [Examples](#examples)
-  * [Example of the usage](#example-of-the-usage)
-  * [Dependencies](#dependencies)
-  * [Supported OS](#supported-os)
-  * [Tests](#tests)
-  * [Version History](#version-history)
-  * [License](#license)
-  * [README in another language](#readme-in-another-language)
-```
-
-That's all! Now all you need — is copy/paste result from console into original
-README.md.
-
-And here is a result:
-
-  * [README.md with TOC](https://github.com/ekalinin/envirius/blob/24ea3be0d3cc03f4235fa4879bb33dc122d0ae29/README.md)
-
-Moreover, it's able to work with GitHub's wiki pages:
-
-```bash
-➥ ./gh-md-toc https://github.com/ekalinin/nodeenv/wiki/Who-Uses-Nodeenv
-
-Table of Contents
-=================
-
-  * [Who Uses Nodeenv?](#who-uses-nodeenv)
-    * [OpenStack](#openstack)
-    * [pre-commit.com](#pre-commitcom)
-```
-
-Multiple files
---------------
-
-It supports multiple files as well:
-
-```bash
-➥ ./gh-md-toc \
-    https://github.com/aminb/rust-for-c/blob/master/hello_world/README.md \
-    https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md \
-    https://github.com/aminb/rust-for-c/blob/master/primitive_types_and_operators/README.md \
-    https://github.com/aminb/rust-for-c/blob/master/unique_pointers/README.md
-
-  * [Hello world](https://github.com/aminb/rust-for-c/blob/master/hello_world/README.md#hello-world)
-
-  * [Control Flow](https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md#control-flow)
-    * [If](https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md#if)
-    * [Loops](https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md#loops)
-    * [For loops](https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md#for-loops)
-    * [Switch/Match](https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md#switchmatch)
-    * [Method call](https://github.com/aminb/rust-for-c/blob/master/control_flow/README.md#method-call)
-
-  * [Primitive Types and Operators](https://github.com/aminb/rust-for-c/blob/master/primitive_types_and_operators/README.md#primitive-types-and-operators)
-
-  * [Unique Pointers](https://github.com/aminb/rust-for-c/blob/master/unique_pointers/README.md#unique-pointers)
-```
-
-Combo
------
-
-You can easily combine both ways:
-
-```bash
-➥ ./gh-md-toc \
-    ~/projects/Dockerfile.vim/README.md \
-    https://github.com/ekalinin/sitemap.s/blob/master/README.md
-
-  * [Dockerfile.vim](~/projects/Dockerfile.vim/README.md#dockerfilevim)
-  * [Screenshot](~/projects/Dockerfile.vim/README.md#screenshot)
-  * [Installation](~/projects/Dockerfile.vim/README.md#installation)
-        * [OR using Pathogen:](~/projects/Dockerfile.vim/README.md#or-using-pathogen)
-        * [OR using Vundle:](~/projects/Dockerfile.vim/README.md#or-using-vundle)
-  * [License](~/projects/Dockerfile.vim/README.md#license)
-
-  * [sitemap.js](https://github.com/ekalinin/sitemap.js/blob/master/README.md#sitemapjs)
-    * [Installation](https://github.com/ekalinin/sitemap.js/blob/master/README.md#installation)
-    * [Usage](https://github.com/ekalinin/sitemap.js/blob/master/README.md#usage)
-    * [License](https://github.com/ekalinin/sitemap.js/blob/master/README.md#license)
-
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-```
-
-Auto insert and update TOC
---------------------------
-
-Just put into a file these two lines:
-
-```
-<!--ts-->
-<!--te-->
-```
-
-And run:
-
-```bash
-$ ./gh-md-toc --insert README.test.md
-
-Table of Contents
-=================
-
-   * [gh-md-toc](#gh-md-toc)
-   * [Installation](#installation)
-   * [Usage](#usage)
-      * [STDIN](#stdin)
-      * [Local files](#local-files)
-      * [Remote files](#remote-files)
-      * [Multiple files](#multiple-files)
-      * [Combo](#combo)
-   * [Tests](#tests)
-   * [Dependency](#dependency)
-
-!! TOC was added into: 'README.test.md'
-!! Origin version of the file: 'README.test.md.orig.2018-02-04_192655'
-!! TOC added into a separate file: 'README.test.md.toc.2018-02-04_192655'
-
-
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-```
-
-Now check the same file:
-
-```bash
-➜ grep -A15 "<\!\-\-ts" README.test.md
-<!--ts-->
-   * [gh-md-toc](#gh-md-toc)
-   * [Table of contents](#table-of-contents)
-   * [Installation](#installation)
-   * [Usage](#usage)
-      * [STDIN](#stdin)
-      * [Local files](#local-files)
-      * [Remote files](#remote-files)
-      * [Multiple files](#multiple-files)
-      * [Combo](#combo)
-      * [Auto insert and update TOC](#auto-insert-and-update-toc)
-   * [Tests](#tests)
-   * [Dependency](#dependency)
-
-<!-- Added by: <your-user>, at: 2018-02-04T19:38+03:00 -->
-
-<!--te-->
-```
-
-Next time when your file will be changed just repeat the command (`./gh-md-toc
---insert ...`) and TOC will be refreshed again.
-
-
-Tests
-=====
-
-Done with [bats](https://github.com/sstephenson/bats).
-Useful articles:
-
-  * https://blog.engineyard.com/2014/bats-test-command-line-tools
-  * http://blog.spike.cx/post/60548255435/testing-bash-scripts-with-bats
-
-
-How to run tests:
-
-```bash
-➥ make test                                                                                                                                                                                                      Пн. марта 23 13:59:27 MSK 2015
- ✓ TOC for local README.md
- ✓ TOC for remote README.md
- ✓ TOC for mixed README.md (remote/local)
- ✓ TOC for markdown from stdin
- ✓ --help
- ✓ --version
-
-6 tests, 0 failures
-```
-
-Dependency
-==========
-
-  * curl or wget
-  * awk (mawk, gawk is not supported)
-  * grep
-  * sed
-  * bats (for unit tests)
-
-Tested on Ubuntu 14.04/14.10 in bash/zsh.
-
-
-
-### An h3 header ###
-
-
-
-$$I = \int \rho R^{2} dV$$
-
-And note that you can backslash-escape any punctuation characters
-which you wish to be displayed literally, ex.: \`foo\`, \*bar\*, etc.
-
-```math #yourmathlabel
-a + b = c
-```
-h<sub>&theta;</sub>(x) = &theta;<sub>o</sub> x + &theta;<sub>1</sub>x
-
-![equation](http://www.sciweavers.org/tex2img.php?eq=1%2Bsin%28mc%5E2%29&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=)
-<img src="https://latex.codecogs.com/svg.latex?\Large&space;x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}" title="\Large x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}" />
-
-![\Large x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}](https://latex.codecogs.com/svg.latex?x%3D%5Cfrac%7B-b%5Cpm%5Csqrt%7Bb%5E2-4ac%7D%7D%7B2a%7D)
-
-$ \sum_{\forall i}{x_i^{2}} $
-
-
-Приклади оформлення:
+Перелік посилань:	
 ---
-<details><summary>stuff with *mark* **down**</summary><p>
+1. http://arduino-esp8266.readthedocs.io/en/latest/
+1. https://github.com/esp8266/Arduino
+1. https://uk.wikipedia.org/wiki/%D0%A1%D1%82%D0%BE%D1%80%D0%BE%D0%B6%D0%BE%D0%B2%D0%B8%D0%B9_%D1%82%D0%B0%D0%B9%D0%BC%D0%B5%D1%80
 
-## _formatted_ **heading** with [a](link)
 
----
-{{standard 3-backtick code block omitted from here due to escaping issues}}
----
-
-Collapsible until here.
-</p></details>
-
-Colons can be used to align columns.
-
-| Tables        | Are           | Cool  |
-| ------------- |:-------------:| -----:|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
 
