@@ -148,8 +148,7 @@ It’s possible to decode the Stack to readable information. For more info see t
 
 # Робота ESP8266 з Wi-Fi мережами
 
-### Налаштування Wi-Fi точки доступу
-
+## Налаштування Wi-Fi точки доступу
 
 
 ```c
@@ -282,9 +281,7 @@ void handle_Restart() {
 ```
 
 
-
-### SSDP автовідповідач (ESP8266SSDP)
-
+## SSDP автовідповідач (ESP8266SSDP)
 
 `SSDP` - це ще один протокол виявлення сервісів, який підтримується на Windows із коробки. 
 
